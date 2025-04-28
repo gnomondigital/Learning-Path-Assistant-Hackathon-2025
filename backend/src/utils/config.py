@@ -1,0 +1,21 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+class Settings:
+    CONFLUENCE_URL = os.getenv("CONFLUENCE_URL")
+    CONFLUENCE_USERNAME = os.getenv("CONFLUENCE_USERNAME")
+    CONFLUENCE_API_KEY = os.getenv("CONFLUENCE_API_KEY")
+    CONFLUENCE_SPACE_KEY = os.getenv("CONFLUENCE_SPACE_KEY")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    DATA_DIRECTORY = os.getenv("DATA_DIRECTORY")
+    OUTPUT_DIRECTORY = os.getenv("OUTPUT_DIRECTORY")   
+    MODEL_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
+    PROJECT_CONNECTION_STRING = os.getenv("PROJECT_CONNECTION_STRING")
+    BING_CONNECTION_NAME = os.getenv("BING_CONNECTION_NAME")
+
+
+
+    
