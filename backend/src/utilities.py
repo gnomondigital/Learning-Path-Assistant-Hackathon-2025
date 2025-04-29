@@ -2,7 +2,7 @@ from pathlib import Path
 
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import ThreadMessage
-from terminal_colors import TerminalColors as tc
+from backend.src.terminal_colors import TerminalColors as tc
 
 
 class Utilities:
@@ -10,7 +10,7 @@ class Utilities:
     @property
     def shared_files_path(self) -> Path:
         """Get the path to the shared files directory."""
-        return Path(__file__).parent.parent.parent.resolve() / "shared"
+        return Path(__file__).parent.parent.parent.resolve()
 
     def load_instructions(self, instructions_file: str) -> str:
         """Load instructions from a file."""
