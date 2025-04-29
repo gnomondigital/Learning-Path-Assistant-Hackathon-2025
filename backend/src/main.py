@@ -9,6 +9,7 @@ from azure.ai.projects.models import (
     AsyncFunctionTool,
     AsyncToolSet,
     FileSearchTool,
+    BingGroundingTool,
 )
 from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
@@ -42,7 +43,7 @@ class RAGAgent:
         """Setup the tools for the RAG agent."""
         try:
             # First, run the ingestion process to get the documents
-            #self.confluence_ingestion.extract_and_process_confluence_data()
+            self.confluence_ingestion.extract_and_process_confluence_data()
 
             # Get all markdown files after ingestion
             data_dir = Path(Settings.DATA_DIRECTORY)
@@ -57,17 +58,41 @@ class RAGAgent:
             if not markdown_files:
                 logger.error(f"No markdown files found in {data_dir}")
                 return
+            # Créer un fichier unique pour stocker tout le contenu
+            all_content = ""
+            for file_path in markdown_files:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    title = Path(file_path).stem  # Utiliser le nom du fichier comme titre
+                    content = file.read()  # Lire le contenu du fichier
+
+                    # Ajouter le titre et le contenu dans le fichier global
+                    all_content += f"### {title}\n\n{content}\n\n---\n\n"
+
+            # Sauvegarder tout le contenu dans un fichier unique
+            output_file = os.path.join(Settings.DATA_DIRECTORY, "all_content.md")
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(all_content)
+
+            logger.info(f"All content saved to {output_file}")
+
+
             self.toolset.add(functions)
             # Create a vector store with the ingested documents
             vector_store = await self.utilities.create_vector_store(
                 project_client=self.project_client,
-                files=markdown_files,
+                files=[output_file],
                 vector_store_name="Confluence Knowledge Base"
             )
 
             # Add the file search tool with the vector store
             file_search_tool = FileSearchTool(vector_store_ids=[vector_store.id])
             self.toolset.add(file_search_tool)
+
+            #Add the Bing grounding tool
+            bing_connection = await self.project_client.connections.get(connection_name=Settings.BING_CONNECTION_NAME)
+            bing_grounding = BingGroundingTool(connection_id=bing_connection.id)
+            self.toolset.add(bing_grounding)
+
 
         except Exception as e:
             logger.error(f"Error in setup_tools: {str(e)}")
@@ -77,7 +102,7 @@ class RAGAgent:
         """Initialize the RAG agent with tools and instructions."""
         await self.setup_tools()
         
-        instructions = open("instructions/agent_instructions.txt", "r").read()
+        instructions = open("src/instructions/agent_instructions.txt", "r").read()
         
         agent = await self.project_client.agents.create_agent(
             model=self.settings.MODEL_DEPLOYMENT_NAME,
