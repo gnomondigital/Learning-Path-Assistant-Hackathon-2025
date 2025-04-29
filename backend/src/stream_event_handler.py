@@ -6,7 +6,7 @@ from azure.ai.projects.models import (AsyncAgentEventHandler,
                                       MessageStatus, RunStep,
                                       RunStepDeltaChunk, RunStepStatus,
                                       ThreadMessage, ThreadRun)
-from utilities import Utilities
+from backend.src.utilities import Utilities
 
 
 class StreamEventHandler(AsyncAgentEventHandler[str]):
