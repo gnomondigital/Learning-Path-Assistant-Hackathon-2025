@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import os
-from typing import List, Dict, Any
 
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import (
@@ -13,6 +12,9 @@ from azure.ai.projects.models import (
 )
 from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
+from pathlib import Path
+from utils.stream_event_handler import StreamEventHandler
+
 
 from utils.config import Settings
 from utils.utilities import Utilities
@@ -22,6 +24,7 @@ from ingestion import ConfluenceIngestion
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+functions = AsyncFunctionTool( functions=set())
 
 class RAGAgent:
     def __init__(self):
@@ -34,34 +37,47 @@ class RAGAgent:
         self.toolset = AsyncToolSet()
         self.confluence_ingestion = ConfluenceIngestion()
         self.utilities = Utilities()
-        
+ 
     async def setup_tools(self):
         """Setup the tools for the RAG agent."""
-        # Create async function tools for Confluence operations
-        confluence_functions = AsyncFunctionTool({
-            self.confluence_ingestion.extract_confluence_data,
-            self.confluence_ingestion.fetch_page_details,
-            self.confluence_ingestion.extract_and_process_confluence_data
-        })
-        self.toolset.add(confluence_functions)
-        
-        # Add file search tool for the ingested data
-        vector_store = await self.utilities.create_vector_store(
-            project_client=self.project_client,
-            files=[os.path.join(self.settings.DATA_DIRECTORY, "confluence_data.json")],
-            vector_store_name="Confluence Knowledge Base"
-        )
-        if vector_store:
+        try:
+            # First, run the ingestion process to get the documents
+            #self.confluence_ingestion.extract_and_process_confluence_data()
+
+            # Get all markdown files after ingestion
+            data_dir = Path(Settings.DATA_DIRECTORY)
+            markdown_files = []
+            if data_dir.exists():
+                for file in os.listdir(data_dir):
+                    if file.endswith('.md'):
+                        full_path = str(data_dir / file)
+                        markdown_files.append(full_path)
+                        logger.info(f"Found file: {full_path}")
+
+            if not markdown_files:
+                logger.error(f"No markdown files found in {data_dir}")
+                return
+            self.toolset.add(functions)
+            # Create a vector store with the ingested documents
+            vector_store = await self.utilities.create_vector_store(
+                project_client=self.project_client,
+                files=markdown_files,
+                vector_store_name="Confluence Knowledge Base"
+            )
+
+            # Add the file search tool with the vector store
             file_search_tool = FileSearchTool(vector_store_ids=[vector_store.id])
             self.toolset.add(file_search_tool)
-        else:
-            logger.error("Failed to create vector store")
+
+        except Exception as e:
+            logger.error(f"Error in setup_tools: {str(e)}")
+            raise
         
     async def initialize_agent(self) -> tuple[Agent, AgentThread]:
         """Initialize the RAG agent with tools and instructions."""
         await self.setup_tools()
         
-        instructions = open("./instructions/agent_instructions.txt", "r").read()
+        instructions = open("instructions/agent_instructions.txt", "r").read()
         
         agent = await self.project_client.agents.create_agent(
             model=self.settings.MODEL_DEPLOYMENT_NAME,
@@ -76,77 +92,89 @@ class RAGAgent:
         
         return agent, thread
         
+
+
     async def process_query(self, query: str, agent: Agent, thread: AgentThread):
-        """Process a user query using the RAG agent."""
+        """Process a user query using the RAG agent with FileSearchTool."""
         try:
-            self.confluence_ingestion.extract_and_process_confluence_data()
-            
+            # Ensure previous messages are retrieved
+            thread_messages = await self.project_client.agents.list_messages(thread.id)
+
+            # Log previous messages to confirm they exist
+            logger.info(f"Thread Messages Before Query: {thread_messages}")
+
             # Post the query to the agent
             await self.project_client.agents.create_message(
                 thread_id=thread.id,
                 role="user",
                 content=query
             )
-            
+
+            # Stream agent response
             stream = await self.project_client.agents.create_stream(
                 thread_id=thread.id,
                 agent_id=agent.id,
-                max_completion_tokens=10240,
-                max_prompt_tokens=20480,
+                event_handler=StreamEventHandler(
+                functions=functions,project_client=self.project_client, utilities=self.utilities),
+                instructions=agent.instructions,
+                max_completion_tokens=10240*10,
+                max_prompt_tokens=20480*10,
                 temperature=0.1,
                 top_p=0.1
             )
-            
-            full_response = ""
-            async with stream as s:
-                async for event in s:
-                    if hasattr(event, "content") and event.content:
-                        full_response += event.content  
 
-            logger.info(f"Agent Response: {full_response}")
-            return full_response  
-            
+            async with stream as s:
+                await s.until_done()
+
         except Exception as e:
             logger.error(f"Error processing query: {str(e)}")
-            raise
-
-
-async def main():
-    print(f"{tc.BLUE}Starting Confluence RAG Agent...{tc.RESET}")
-    
-    try:
-        # Initialize the agent
-        rag_agent = RAGAgent()
-        print(f"{tc.GREEN}Initializing agent...{tc.RESET}")
+            return f"Error: {str(e)}"
         
+    async def cleanup(self,agent: Agent, thread: AgentThread) -> None:
+        """Cleanup the resources."""
+        await self.project_client.agents.delete_thread(thread.id)
+        await self.project_client.agents.delete_agent(agent.id)
+
+
+async def main() -> None:
+    """
+    Example questions: Sales by region, top-selling products, total shipping costs by region, show as a pie chart.
+    """
+    rag_agent = RAGAgent()
+    async with rag_agent.project_client:
+        
+
         agent, thread = await rag_agent.initialize_agent()
-        print(f"{tc.GREEN}Agent created successfully!{tc.RESET}")
-        print(f"{tc.CYAN}Agent ID: {agent.id}{tc.RESET}")
-        print(f"{tc.CYAN}Thread ID: {thread.id}{tc.RESET}")
-        print(f"\n{tc.YELLOW}You can view your agent in Azure AI Foundry at:{tc.RESET}")
-        print(f"{tc.BLUE}https://ai.azure.com/playground/agents/{agent.id}{tc.RESET}")
-        
-        # Start interactive session
-        print(f"\n{tc.GREEN}Starting interactive session...{tc.RESET}")
-        print(f"{tc.YELLOW}Type 'exit' to quit{tc.RESET}")
-        
+        if not agent or not thread:
+            print(f"{tc.BG_BRIGHT_RED}Initialization failed. Ensure you have uncommented the instructions file for the lab.{tc.RESET}")
+            print("Exiting...")
+            return
+
+        cmd = None
+
         while True:
-            query = input(f"\n{tc.PURPLE}Enter your query: {tc.RESET}").strip()
-            if query.lower() == 'exit':
+            prompt = input(
+                f"\n\n{tc.GREEN}Enter your query (type exit or save to finish): {tc.RESET}").strip()
+            if not prompt:
+                continue
+
+            cmd = prompt.lower()
+            if cmd in {"exit", "save"}:
                 break
-            response = await rag_agent.process_query(query, agent, thread)
-            print(f"\n{tc.GREEN}Agent Response: {response}{tc.RESET}")
-            #await rag_agent.process_query(query, agent, thread)
-            
-    except Exception as e:
-        print(f"{tc.RED}Error: {str(e)}{tc.RESET}")
-        raise
-    finally:
-        if 'agent' in locals() and 'thread' in locals():
-            print(f"{tc.YELLOW}Cleaning up resources...{tc.RESET}")
-            await rag_agent.project_client.agents.delete_thread(thread.id)
-            await rag_agent.project_client.agents.delete_agent(agent.id)
-            print(f"{tc.GREEN}Cleanup complete!{tc.RESET}")
+
+            await rag_agent.process_query(prompt, agent, thread)
+
+        if cmd == "save":
+            print("The agent has not been deleted, so you can continue experimenting with it in the Azure AI Foundry.")
+            print(
+                f"Navigate to https://ai.azure.com, select your project, then playgrounds, agents playgound, then select agent id: {agent.id}"
+            )
+        else:
+            await rag_agent.cleanup(agent, thread)
+            print("The agent resources have been cleaned up.")
+
 
 if __name__ == "__main__":
+    print("Starting async program...")
     asyncio.run(main())
+    print("Program finished.")
