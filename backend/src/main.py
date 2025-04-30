@@ -9,14 +9,15 @@ from azure.ai.projects.models import (Agent, AgentThread, AsyncFunctionTool,
                                       ToolDefinition)
 from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
+from opentelemetry import trace
 
 from backend.src.prompts.profile_builder import PROMPT
-from backend.src.utils.stream_event_handler import StreamEventHandler
-from backend.src.utils.terminal_colors import TerminalColors as tc
 from backend.src.service.profile_builder.profile_builder import \
-    ProfileBuilderTool
+    ProfileBuilderAgent
 from backend.src.service.profile_builder.profile_questions import \
     PROFILE_QUESTIONS
+from backend.src.utils.stream_event_handler import StreamEventHandler
+from backend.src.utils.terminal_colors import TerminalColors as tc
 from backend.src.utils.utilities import Utilities
 
 logging.basicConfig(level=logging.ERROR)
@@ -57,7 +58,7 @@ INSTRUCTIONS_FILE = "instructions/profile_builder.txt"
 async def add_profile_builder_tool() -> None:
     """Add Profile Builder Tool to the agent's toolset."""
 
-    profile_builder = ProfileBuilderTool(
+    profile_builder = ProfileBuilderAgent(
         prompt_text=PROMPT, questions=PROFILE_QUESTIONS)
     profile_builder_tool = AsyncFunctionTool(
         {profile_builder.ask_question,
@@ -154,6 +155,37 @@ async def main() -> None:
             await cleanup(agent, thread)
             print("The agent resources have been cleaned up.")
 
+project_client.telemetry.enable()
+
+scenario = os.path.basename(__file__)
+tracer = trace.get_tracer(__name__)
+
+with tracer.start_as_current_span(scenario):
+    with project_client:
+        # Create an agent and run stream with event handler
+        agent = project_client.agents.create_agent(
+            model=os.environ["MODEL_DEPLOYMENT_NAME"], name="my-assistant", instructions="You are a helpful assistant"
+        )
+        print(f"Created agent, agent ID {agent.id}")
+
+        thread = project_client.agents.create_thread()
+        print(f"Created thread, thread ID {thread.id}")
+
+        message = project_client.agents.create_message(
+            thread_id=thread.id, role="user", content="Hello, tell me a joke"
+        )
+        print(f"Created message, message ID {message.id}")
+
+        with project_client.agents.create_stream(
+            thread_id=thread.id, agent_id=agent.id, event_handler=MyEventHandler()
+        ) as stream:
+            stream.until_done()
+
+        project_client.agents.delete_agent(agent.id)
+        print("Deleted agent")
+
+        messages = project_client.agents.list_messages(thread_id=thread.id)
+        print(f"Messages: {messages}")
 
 if __name__ == "__main__":
     print("Starting async program...")

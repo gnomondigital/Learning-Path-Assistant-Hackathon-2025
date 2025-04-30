@@ -58,3 +58,4 @@ class StreamEventHandler(AsyncAgentEventHandler[str]):
         """Handle unhandled events."""
         # print(f"Unhandled Event Type: {event_type}, Data: {event_data}")
         print(f"Unhandled Event Type: {event_type}")
+

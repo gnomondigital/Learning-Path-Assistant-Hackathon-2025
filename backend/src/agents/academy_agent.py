@@ -1,3 +1,4 @@
+
 import asyncio
 import logging
 import os
@@ -5,14 +6,15 @@ from pathlib import Path
 
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import (Agent, AgentThread, AsyncFunctionTool,
-                                      AsyncToolSet, BingGroundingTool,
-                                      FileSearchTool)
+                                      AsyncToolSet, FileSearchTool)
 from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
-from service.confluence.ingestion import ConfluenceIngestion
-from utils.config import Settings
-from utils.stream_event_handler import StreamEventHandler
-from utils.utilities import Utilities
+from semantic_kernel.functions import kernel_function
+
+from backend.src.service.confluence.ingestion import ConfluenceIngestion
+from backend.src.utils.config import Settings
+from backend.src.utils.stream_event_handler import StreamEventHandler
+from backend.src.utils.utilities import Utilities
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -52,7 +54,7 @@ class RAGAgent:
                 logger.error(f"No markdown files found in {data_dir}")
                 return
 
-            self.toolset.add(functions)
+            # self.toolset.add(functions)
             # Create a vector store with the ingested documents
             vector_store = await self.utilities.create_vector_store(
                 project_client=self.project_client,
@@ -63,32 +65,16 @@ class RAGAgent:
             # Add the file search tool with the vector store
             file_search_tool = FileSearchTool(
                 vector_store_ids=[vector_store.id])
-            self.toolset.add(file_search_tool)
+            return file_search_tool
 
         except Exception as e:
             logger.error(f"Error in setup_tools: {str(e)}")
             raise
 
-    async def initialize_agent(self) -> tuple[Agent, AgentThread]:
-        """Initialize the RAG agent with tools and instructions."""
-        await self.setup_tools()
-
-        instructions = open(
-            "src/instructions/agent_instructions.txt", "r").read()
-
-        agent = await self.project_client.agents.create_agent(
-            model=self.settings.MODEL_DEPLOYMENT_NAME,
-            name="Confluence RAG Agent",
-            instructions=instructions,
-            toolset=self.toolset,
-            temperature=0.1,
-            headers={"x-ms-enable-preview": "true"},
-        )
-
-        thread = await self.project_client.agents.create_thread()
-
-        return agent, thread
-
+    @kernel_function(
+        description="links to confluence, and get company internal matrials for learning.",
+        name="find_learning_materials",
+    )
     async def process_query(self, query: str, agent: Agent, thread: AgentThread):
         """Process a user query using the RAG agent with FileSearchTool."""
         try:
@@ -125,7 +111,3 @@ class RAGAgent:
             logger.error(f"Error processing query: {str(e)}")
             return f"Error: {str(e)}"
 
-    async def cleanup(self, agent: Agent, thread: AgentThread) -> None:
-        """Cleanup the resources."""
-        await self.project_client.agents.delete_thread(thread.id)
-        await self.project_client.agents.delete_agent(agent.id)
