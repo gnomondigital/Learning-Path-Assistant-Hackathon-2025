@@ -3,10 +3,9 @@ from typing import Any
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import (AsyncAgentEventHandler,
                                       AsyncFunctionTool, MessageDeltaChunk,
-                                      MessageStatus, RunStep,
-                                      RunStepDeltaChunk, RunStepStatus,
+                                      RunStep, RunStepDeltaChunk,
                                       ThreadMessage, ThreadRun)
-from backend.src.utils.utilities import Utilities
+from utils.utilities import Utilities
 
 
 class StreamEventHandler(AsyncAgentEventHandler[str]):
