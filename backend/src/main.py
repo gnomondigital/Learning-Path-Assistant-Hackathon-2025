@@ -11,13 +11,13 @@ from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 
 from backend.src.prompts.profile_builder import PROMPT
-from backend.src.stream_event_handler import StreamEventHandler
-from backend.src.terminal_colors import TerminalColors as tc
+from backend.src.utils.stream_event_handler import StreamEventHandler
+from backend.src.utils.terminal_colors import TerminalColors as tc
 from backend.src.tools.profile_builder.profile_builder import \
     ProfileBuilderTool
 from backend.src.tools.profile_builder.profile_questions import \
     PROFILE_QUESTIONS
-from backend.src.utilities import Utilities
+from backend.src.utils.utilities import Utilities
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
