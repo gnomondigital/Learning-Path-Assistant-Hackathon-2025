@@ -1,18 +1,10 @@
 from typing import Any
 
 from azure.ai.projects.aio import AIProjectClient
-from azure.ai.projects.models import (
-    AsyncAgentEventHandler,
-    AsyncFunctionTool,
-    MessageDeltaChunk,
-    MessageStatus,
-    RunStep,
-    RunStepDeltaChunk,
-    RunStepStatus,
-    ThreadMessage,
-    ThreadRun,
-)
-
+from azure.ai.projects.models import (AsyncAgentEventHandler,
+                                      AsyncFunctionTool, MessageDeltaChunk,
+                                      RunStep, RunStepDeltaChunk,
+                                      ThreadMessage, ThreadRun)
 from utils.utilities import Utilities
 
 

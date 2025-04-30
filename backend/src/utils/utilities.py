@@ -1,22 +1,25 @@
-import re
 import html
 import logging
+import re
 from pathlib import Path
-from typing import List, Optional
-from typing import Dict, Any
-from azure.ai.projects.models import ThreadMessage
-
+from typing import Any, Dict, List, Optional
 
 from azure.ai.projects.aio import AIProjectClient
-from azure.ai.projects.models import VectorStore
+from azure.ai.projects.models import ThreadMessage, VectorStore
 from utils.terminal_colors import TerminalColors as tc
-from utils.config import Settings
 
 logger = logging.getLogger(__name__)
+
+
 class Utilities:
     def __init__(self):
         self.shared_files_path = Path("data")
         self.shared_files_path.mkdir(exist_ok=True)
+
+    @property
+    def shared_files_path(self) -> Path:
+        """Get the path to the shared files directory."""
+        return Path(__file__).parent.parent.parent.resolve()
 
     def clean_html_and_emojis(text):
         text = html.unescape(text)
@@ -50,7 +53,8 @@ class Utilities:
 
     def log_msg_purple(self, message: str) -> None:
         """Log a message in purple color."""
-        logger.info(f"{tc.PURPLE}{message}{tc.RESET}")  
+        logger.info(f"{tc.PURPLE}{message}{tc.RESET}")
+
     def log_msg_green(self, msg: str) -> None:
         """Print a message in green."""
         print(f"{tc.GREEN}{msg}{tc.RESET}")
@@ -62,7 +66,7 @@ class Utilities:
     def log_token_blue(self, msg: str) -> None:
         """Print a token in blue."""
         print(f"{tc.BLUE}{msg}{tc.RESET}", end="", flush=True)
-        
+
     async def get_file(self, project_client: AIProjectClient, file_id: str, attachment_name: str) -> None:
         """Retrieve the file and save it to the local disk."""
         self.log_msg_green(f"Getting file with ID: {file_id}")
@@ -90,21 +94,22 @@ class Utilities:
         if message.image_contents:
             for index, image in enumerate(message.image_contents, start=0):
                 attachment_name = (
-                    "unknown" if not message.file_path_annotations else message.file_path_annotations[index].text + ".png"
+                    "unknown" if not message.file_path_annotations else message.file_path_annotations[
+                        index].text + ".png"
                 )
                 await self.get_file(project_client, image.image_file.file_id, attachment_name)
         elif message.attachments:
             for index, attachment in enumerate(message.attachments, start=0):
                 attachment_name = (
-                    "unknown" if not message.file_path_annotations else message.file_path_annotations[index].text
+                    "unknown" if not message.file_path_annotations else message.file_path_annotations[
+                        index].text
                 )
                 await self.get_file(project_client, attachment.file_id, attachment_name)
 
-
     async def upload_file(
-        self, 
-        project_client: AIProjectClient, 
-        file_path: Path, 
+        self,
+        project_client: AIProjectClient,
+        file_path: Path,
         purpose: str = "assistants"
     ) -> Dict[str, Any]:
         """Upload a file to the project."""
@@ -120,26 +125,26 @@ class Utilities:
             raise
 
     async def create_vector_store(
-        self, 
-        project_client: AIProjectClient, 
-        files: List[str], 
+        self,
+        project_client: AIProjectClient,
+        files: List[str],
         vector_store_name: str
     ) -> Optional[VectorStore]:
         """Create a vector store and upload files to it."""
         try:
             file_ids = []
-            
+
             # Upload the files
             for file in files:
                 file_path = Path(file)
                 if not file_path.exists():
                     logger.warning(f"File not found: {file_path}")
                     continue
-                    
+
                 try:
                     file_info = await self.upload_file(
-                        project_client, 
-                        file_path=file_path, 
+                        project_client,
+                        file_path=file_path,
                         purpose="assistants"
                     )
                     if file_info and 'id' in file_info:
@@ -150,22 +155,24 @@ class Utilities:
                 except Exception as e:
                     logger.error(f"Failed to upload {file_path}: {str(e)}")
                     continue
-                
+
             if not file_ids:
                 logger.error("No files were successfully uploaded")
                 return None
-                
-            self.log_msg_purple(f"Creating vector store with {len(file_ids)} files")
-            
+
+            self.log_msg_purple(
+                f"Creating vector store with {len(file_ids)} files")
+
             try:
                 # Create a vector store
                 vector_store = await project_client.agents.create_vector_store_and_poll(
-                    file_ids=file_ids, 
+                    file_ids=file_ids,
                     name=vector_store_name
                 )
-                
+
                 if vector_store:
-                    self.log_msg_purple(f"Vector store '{vector_store_name}' created successfully")
+                    self.log_msg_purple(
+                        f"Vector store '{vector_store_name}' created successfully")
                     return vector_store
                 else:
                     logger.error("Vector store creation returned None")
@@ -173,7 +180,7 @@ class Utilities:
             except Exception as e:
                 logger.error(f"Error creating vector store: {str(e)}")
                 return None
-            
+
         except Exception as e:
             logger.error(f"Error in create_vector_store: {str(e)}")
             return None
