@@ -1,0 +1,18 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "agents>=1.4.0",
+    "aiohttp>=3.11.18",
+    "az>=0.1.0.dev1",
+    "azure-ai-projects>=1.0.0b10",
+    "azure-identity>=1.21.0",
+    "dotenv>=0.9.9",
+    "mcp-agent>=0.0.17",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.3",
+    "terminal-colors>=3.0.0",
+]
