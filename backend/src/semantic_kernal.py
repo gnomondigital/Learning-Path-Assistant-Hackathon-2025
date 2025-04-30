@@ -1,9 +1,53 @@
 import asyncio
 import os
+from typing import Annotated
 
-from semantic_kernel.agents import ChatCompletionAgent
+import semantic_kernel as sk
+from azure.ai.projects.aio import AIProjectClient
+from azure.ai.projects.models import BingGroundingTool
+from azure.identity.aio import DefaultAzureCredential
+from azure.monitor.opentelemetry import configure_azure_monitor
+from opentelemetry import trace
+from semantic_kernel.agents import (AgentGroupChat, AzureAIAgent,
+                                    AzureAIAgentSettings, AzureAIAgentThread,
+                                    ChatCompletionAgent)
+from semantic_kernel.agents.strategies import TerminationStrategy
 from semantic_kernel.connectors.ai.open_ai import (AzureChatCompletion,
                                                    OpenAIChatCompletion)
+from semantic_kernel.contents import AuthorRole
+from semantic_kernel.functions import kernel_function
+
+from backend.src.prompts.profile_builder import PROMPT
+from backend.src.service.profile_builder.profile_builder import \
+    ProfileBuilderAgent
+from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
+# Initialize the Semantic Kernel
+kernel = sk.Kernel()
+
+# Configure tracing
+
+
+async def enable_project_monitoring():
+    application_insights_connection_string = await project_client.telemetry.get_connection_string()
+    if not application_insights_connection_string:
+        print("Application Insights was not enabled for this project.")
+        print("Enable it via the 'Tracing' tab in your AI Foundry project page.")
+        exit()
+    else:
+        print("Application Insights is enabled!")
+    configure_azure_monitor(
+        connection_string=application_insights_connection_string)
+
+    project_client.telemetry.enable()
+
+
+class ApprovalTerminationStrategy(TerminationStrategy):
+    """A strategy for determining when an agent should terminate."""
+
+    async def should_agent_terminate(self, agent, history):
+        """Check if the agent should terminate."""
+        return "approved" in history[-1].content.lower()
+
 
 AGENT_NAME = "GD Academy"
 FONTS_ZIP = "fonts/fonts.zip"
@@ -20,67 +64,82 @@ TEMPERATURE = 0.1
 TOP_P = 0.1
 INSTRUCTIONS_FILE = None
 
-service = AzureChatCompletion(
-    deployment_name=API_DEPLOYMENT_NAME,
-    api_key=AZURE_AI_INFERENCE_API_KEY,
-    endpoint=AZURE_AI_INFERENCE_ENDPOINT,
-)
-billing_agent = ChatCompletionAgent(
-    service=service,
-    name="BillingAgent",
-    instructions="You handle billing issues like charges, payment methods, cycles, fees, discrepancies, and payment failures."
+# Simulate a conversation with the agent
+TASK = "a slogan for a new line of electric cars."
+project_client = AIProjectClient.from_connection_string(
+    credential=DefaultAzureCredential(),
+    conn_str=PROJECT_CONNECTION_STRING,
 )
 
-refund_agent = ChatCompletionAgent(
-    service=service,
-    name="RefundAgent",
-    instructions="Assist users with refund inquiries, including eligibility, policies, processing, and status updates.",
-)
 
-triage_agent = ChatCompletionAgent(
-    service=service,
-    name="TriageAgent",
-    instructions="Evaluate user requests and forward them to BillingAgent or RefundAgent for targeted assistance."
-    " Provide the full answer to the user containing any information from the agents",
-    plugins=[billing_agent, refund_agent],
-)
+class MenuPlugin:
+    """A sample Menu Plugin used for the concept sample."""
 
-thread = None
+    @kernel_function(description="Provides a list of specials from the menu.")
+    def get_specials(self) -> Annotated[str, "Returns the specials from the menu."]:
+        return """
+        Special Soup: Clam Chowder
+        Special Salad: Cobb Salad
+        Special Drink: Chai Tea
+        """
 
+    @kernel_function(description="Provides the price of the requested menu item.")
+    def get_item_price(
+        self, menu_item: Annotated[str, "The name of the menu item."]
+    ) -> Annotated[str, "Returns the price of the menu item."]:
+        return "$9.99"
+    
+
+USER_INPUTS = [
+    "Hello, I am John Doe.",
+    "What is your name?",
+    "What is my name?",
+]
 
 async def main() -> None:
-    print("Welcome to the chat bot!\n  Type 'exit' to exit.\n  Try to get some billing or refund help.")
-    while True:
-        user_input = input("User:> ")
+    ai_agent_settings = AzureAIAgentSettings()
 
-        if user_input.lower().strip() == "exit":
-            print("\n\nExiting chat...")
-            return False
-
-        response = await triage_agent.get_response(
-            messages=user_input,
-            thread=thread,
+    async with (
+        DefaultAzureCredential() as creds,
+        AzureAIAgent.create_client(credential=creds) as client,
+    ):
+        # 1. Create an agent on the Azure AI agent service
+        agent_definition = await client.agents.create_agent(
+            model=ai_agent_settings.model_deployment_name,
+            name="profile_builder_agent",
+            instructions=PROMPT,
         )
 
-        if response:
-            print(f"Agent :> {response}")
+        # 2. Create a Semantic Kernel agent for the Azure AI agent
+        agent = AzureAIAgent(
+            client=client,
+            definition=agent_definition,
+            plugins=[ProfileBuilderAgent()],  # Add the plugin to the agent
+        )
 
-# Agent :> I understand that you were charged twice for your subscription last month, and I'm here to assist you with resolving this issue. Here’s what we need to do next:
+       
+    
 
-# 1. **Billing Inquiry**:
-#    - Please provide the email address or account number associated with your subscription, the date(s) of the charges, and the amount charged. This will allow the billing team to investigate the discrepancy in the charges.
+        # 3. Create a thread for the agent
+        # If no thread is provided, a new thread will be
+        # created and returned with the initial response
+        thread = None
+        
+        try:
+            await enable_project_monitoring()
+            scenario = os.path.basename(__file__)
+            tracer = trace.get_tracer(__name__)
+            with tracer.start_as_current_span(scenario):
+                for user_input in USER_INPUTS:
+                    print(f"# User: {user_input}")
+                    # 4. Invoke the agent with the specified message for response
+                    response = await agent.get_response(messages=user_input, thread=thread)
+                    print(f"# {response.name}: {response}")
+                    thread = response.thread
 
-# 2. **Refund Process**:
-#    - For the refund, please confirm your subscription type and the email address associated with your account.
-#    - Provide the dates and transaction IDs for the charges you believe were duplicated.
-
-# Once we have these details, we will be able to:
-
-# - Check your billing history for any discrepancies.
-# - Confirm any duplicate charges.
-# - Initiate a refund for the duplicate payment if it qualifies. The refund process usually takes 5-10 business days after approval.
-
-# Please provide the necessary details so we can proceed with resolving this issue for you.
+        finally:
+            # 8. Cleanup: Delete the agents
+            await client.agents.delete_agent(agent.id)
 
 
 if __name__ == "__main__":

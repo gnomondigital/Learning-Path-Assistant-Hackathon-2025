@@ -1,17 +1,25 @@
 
+from semantic_kernel.functions import kernel_function
 
-class ProfileBuilderTool():
-    def __init__(self, prompt_text: str, questions=None):
+from backend.src.service.profile_builder.profile_questions import \
+    PROFILE_QUESTIONS
+
+
+class ProfileBuilderAgent():
+    def __init__(self, questions=PROFILE_QUESTIONS):
         """
         Initialize the ProfileBuilderTool with the necessary instructions and questions.
 
         :param prompt_text: The instructions or guidelines to provide context to the model.
         :param questions: List of questions (defaults to the imported PROFILE_QUESTIONS).
         """
-        self.prompt_text = prompt_text
         self.questions = questions
         self.profile = {}
 
+    @kernel_function(
+        description="Format a question with context and options for the user.",
+        name="ask_question"
+    )
     def ask_question(self, question_obj):
         """
         Method to format and present a question to the user, returning the response.
@@ -23,9 +31,13 @@ class ProfileBuilderTool():
         options = "\n".join(question_obj['options'])
 
         # Construct a full prompt
-        prompt = f"{self.prompt_text}\n\n{question}\n\n{options}"
+        prompt = f"{question}\n\n{options}"
         return prompt
 
+    @kernel_function(
+        description="Collect structured responses from the user.",
+        name="collect_responses"
+    )
     def collect_responses(self, user_responses):
         """
         Process user responses and build a structured profile.
@@ -43,6 +55,10 @@ class ProfileBuilderTool():
 
         return self.profile
 
+    @kernel_function(
+        description="Execute the profile builder and return a completed profile.",
+        name="execute"
+    )
     async def execute(self, user_responses):
         """
         Main execution method that calls the profile-building process.
