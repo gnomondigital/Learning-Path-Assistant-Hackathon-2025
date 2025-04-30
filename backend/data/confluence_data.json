@@ -1,0 +1,603 @@
+[
+    {
+        "title": "Udemy",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=9895950",
+        "ancestors": [
+            "cademy"
+        ],
+        "children": [],
+        "last_modified": "2024-08-04T11:45:45.745Z",
+        "page_id": "9895950",
+        "tags": []
+    },
+    {
+        "title": "Data",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=9895962",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path"
+        ],
+        "children": [
+            "Data Engineering basics",
+            "SQL & NoSQL"
+        ],
+        "last_modified": "2024-01-24T12:31:51.109Z",
+        "page_id": "9895962",
+        "tags": []
+    },
+    {
+        "title": "Git basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=9928728",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Programming"
+        ],
+        "children": [],
+        "last_modified": "2024-06-26T15:16:01.852Z",
+        "page_id": "9928728",
+        "tags": []
+    },
+    {
+        "title": "Basics - Learning Path",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=9961474",
+        "ancestors": [
+            "cademy"
+        ],
+        "children": [
+            "Programming",
+            "Data",
+            "Console",
+            "Cloud",
+            "Prompt Engineering"
+        ],
+        "last_modified": "2024-10-30T10:42:11.840Z",
+        "page_id": "9961474",
+        "tags": []
+    },
+    {
+        "title": "Learning Path - Data Engineer",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=9961490",
+        "ancestors": [
+            "cademy"
+        ],
+        "children": [
+            "BigData basics",
+            "Spark Basics",
+            "Spark Advanced",
+            "Data Gouvernance",
+            "Data anonymisation",
+            "Data Quality",
+            "Airflow",
+            "DBT",
+            "DBT cloud fundamentals",
+            "ClickHouse",
+            "Great Expectations",
+            "AirByte",
+            "Glue AWS",
+            "API Basics",
+            "Microservices",
+            "Web Scraping",
+            "DevOps - CI/CD pipeline",
+            "Terraform"
+        ],
+        "last_modified": "2024-10-30T10:44:16.217Z",
+        "page_id": "9961490",
+        "tags": []
+    },
+    {
+        "title": "Cloud",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=9961515",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path"
+        ],
+        "children": [
+            "Cloud basics",
+            "GCP Basics - part 1",
+            "GCP Basics - part 2"
+        ],
+        "last_modified": "2024-01-24T12:32:19.995Z",
+        "page_id": "9961515",
+        "tags": []
+    },
+    {
+        "title": "Prompt Engineering",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=10092571",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path"
+        ],
+        "children": [],
+        "last_modified": "2024-01-24T12:32:46.729Z",
+        "page_id": "10092571",
+        "tags": []
+    },
+    {
+        "title": "Learning Path - Machine Learning Engineer",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=10289167",
+        "ancestors": [
+            "cademy"
+        ],
+        "children": [
+            "Supervised machine learning",
+            "Unsupervised Machine Learning",
+            "Deep Learning"
+        ],
+        "last_modified": "2024-10-30T10:47:08.318Z",
+        "page_id": "10289167",
+        "tags": []
+    },
+    {
+        "title": "Learning Path - Cloud Engineer",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=10354692",
+        "ancestors": [
+            "cademy"
+        ],
+        "children": [],
+        "last_modified": "2024-10-30T10:48:18.896Z",
+        "page_id": "10354692",
+        "tags": []
+    },
+    {
+        "title": "Programming",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=10485762",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path"
+        ],
+        "children": [
+            "Git basics",
+            "Python basics",
+            "Advanced Python"
+        ],
+        "last_modified": "2024-06-24T09:31:02.167Z",
+        "page_id": "10485762",
+        "tags": []
+    },
+    {
+        "title": "Console",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=10813451",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path"
+        ],
+        "children": [
+            "DevOps basics",
+            "Docker Basics",
+            "Unix/bash basics"
+        ],
+        "last_modified": "2024-01-24T12:32:05.975Z",
+        "page_id": "10813451",
+        "tags": []
+    },
+    {
+        "title": "Python basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=116719617",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Programming"
+        ],
+        "children": [],
+        "last_modified": "2024-09-03T08:06:40.567Z",
+        "page_id": "116719617",
+        "tags": [
+            "programming",
+            "python",
+            "basics"
+        ]
+    },
+    {
+        "title": "cademy",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=134152687",
+        "ancestors": [],
+        "children": [
+            "Basics - Learning Path",
+            "Learning Path - Data Engineer",
+            "Learning Path - Machine Learning Engineer",
+            "Learning Path - Cloud Engineer",
+            "Udemy"
+        ],
+        "last_modified": "2024-10-30T10:39:02.468Z",
+        "page_id": "134152687",
+        "tags": []
+    },
+    {
+        "title": "SQL & NoSQL",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=140738563",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Data"
+        ],
+        "children": [],
+        "last_modified": "2024-07-29T12:42:36.625Z",
+        "page_id": "140738563",
+        "tags": []
+    },
+    {
+        "title": "Data Engineering basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=140967938",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Data"
+        ],
+        "children": [],
+        "last_modified": "2024-07-30T05:45:55.040Z",
+        "page_id": "140967938",
+        "tags": []
+    },
+    {
+        "title": "Advanced Python",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=142835713",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Programming"
+        ],
+        "children": [],
+        "last_modified": "2024-12-24T09:18:51.099Z",
+        "page_id": "142835713",
+        "tags": []
+    },
+    {
+        "title": "Docker Basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=144310284",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Console"
+        ],
+        "children": [],
+        "last_modified": "2024-07-30T06:22:10.413Z",
+        "page_id": "144310284",
+        "tags": []
+    },
+    {
+        "title": "DevOps basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=144605192",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Console"
+        ],
+        "children": [],
+        "last_modified": "2024-07-30T05:58:11.162Z",
+        "page_id": "144605192",
+        "tags": []
+    },
+    {
+        "title": "Unix/bash basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=144670726",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Console"
+        ],
+        "children": [],
+        "last_modified": "2024-07-30T07:32:27.775Z",
+        "page_id": "144670726",
+        "tags": []
+    },
+    {
+        "title": "BigData basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147128330",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:06:54.406Z",
+        "page_id": "147128330",
+        "tags": []
+    },
+    {
+        "title": "Unsupervised Machine Learning",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147128472",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Machine Learning Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-08-02T06:13:04.500Z",
+        "page_id": "147128472",
+        "tags": []
+    },
+    {
+        "title": "Cloud basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147193857",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Cloud"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T04:16:21.090Z",
+        "page_id": "147193857",
+        "tags": []
+    },
+    {
+        "title": "Data Gouvernance",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147226682",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:15:21.538Z",
+        "page_id": "147226682",
+        "tags": []
+    },
+    {
+        "title": "GCP Basics - part 2",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147259395",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Cloud"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T04:39:47.772Z",
+        "page_id": "147259395",
+        "tags": []
+    },
+    {
+        "title": "Spark Advanced",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147292201",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:12:59.046Z",
+        "page_id": "147292201",
+        "tags": []
+    },
+    {
+        "title": "DBT",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147292254",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:34:21.377Z",
+        "page_id": "147292254",
+        "tags": []
+    },
+    {
+        "title": "AirByte",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147292282",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:51:21.934Z",
+        "page_id": "147292282",
+        "tags": []
+    },
+    {
+        "title": "API Basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147292337",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T06:06:24.599Z",
+        "page_id": "147292337",
+        "tags": []
+    },
+    {
+        "title": "Glue AWS",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147357867",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:55:01.582Z",
+        "page_id": "147357867",
+        "tags": []
+    },
+    {
+        "title": "Microservices",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147357885",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T06:11:55.679Z",
+        "page_id": "147357885",
+        "tags": []
+    },
+    {
+        "title": "Airflow",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147456103",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:29:49.200Z",
+        "page_id": "147456103",
+        "tags": []
+    },
+    {
+        "title": "ClickHouse",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147456142",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:55:11.390Z",
+        "page_id": "147456142",
+        "tags": []
+    },
+    {
+        "title": "Data anonymisation",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147488869",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:24:25.977Z",
+        "page_id": "147488869",
+        "tags": []
+    },
+    {
+        "title": "Data Quality",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147488885",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:25:44.439Z",
+        "page_id": "147488885",
+        "tags": []
+    },
+    {
+        "title": "DBT cloud fundamentals",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147488907",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:37:19.052Z",
+        "page_id": "147488907",
+        "tags": []
+    },
+    {
+        "title": "Web Scraping",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147488965",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T06:21:59.814Z",
+        "page_id": "147488965",
+        "tags": []
+    },
+    {
+        "title": "Spark Basics",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147521566",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:10:20.478Z",
+        "page_id": "147521566",
+        "tags": []
+    },
+    {
+        "title": "GCP Basics - part 1",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147587075",
+        "ancestors": [
+            "cademy",
+            "Basics - Learning Path",
+            "Cloud"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T04:22:48.198Z",
+        "page_id": "147587075",
+        "tags": []
+    },
+    {
+        "title": "Great Expectations",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147652705",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T05:43:38.234Z",
+        "page_id": "147652705",
+        "tags": []
+    },
+    {
+        "title": "DevOps - CI/CD pipeline",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147652782",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T06:24:34.864Z",
+        "page_id": "147652782",
+        "tags": []
+    },
+    {
+        "title": "Terraform",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147914759",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Data Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-07-31T06:54:30.955Z",
+        "page_id": "147914759",
+        "tags": []
+    },
+    {
+        "title": "Supervised machine learning",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=147980310",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Machine Learning Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-08-02T05:56:16.776Z",
+        "page_id": "147980310",
+        "tags": []
+    },
+    {
+        "title": "Deep Learning",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=148045838",
+        "ancestors": [
+            "cademy",
+            "Learning Path - Machine Learning Engineer"
+        ],
+        "children": [],
+        "last_modified": "2024-08-02T06:33:20.222Z",
+        "page_id": "148045838",
+        "tags": []
+    },
+    {
+        "title": "GD academy vision",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=174227472",
+        "ancestors": [
+            "cademy",
+            "GD learning Road Map"
+        ],
+        "children": [],
+        "last_modified": "2024-11-26T09:36:47.662Z",
+        "page_id": "174227472",
+        "tags": []
+    },
+    {
+        "title": "Road map OKR 2025",
+        "url": "https://gnomondigital.atlassian.net/wiki/pages/viewpage.action?pageId=331218959",
+        "ancestors": [
+            "cademy",
+            "GD learning Road Map"
+        ],
+        "children": [],
+        "last_modified": "2025-04-23T08:25:32.324Z",
+        "page_id": "331218959",
+        "tags": [
+            "gdacademy",
+            "roadmap",
+            "planning"
+        ]
+    }
+]
