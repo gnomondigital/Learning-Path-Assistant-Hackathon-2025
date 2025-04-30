@@ -8,6 +8,7 @@ class TerminalColors:
     GREEN = "\033[32m"
     YELLOW = "\033[33m"
     BLUE = "\033[34m"
+    END = '\033[0m'    # Add this line (same as RESET)
     MAGENTA = "\033[35m"
     CYAN = "\033[36m"
     WHITE = "\033[37m"
@@ -22,7 +23,6 @@ class TerminalColors:
     BRIGHT_MAGENTA = "\033[95m"
     BRIGHT_CYAN = "\033[96m"
     BRIGHT_WHITE = "\033[97m"
-
     # Background colors
     BG_BLACK = "\033[40m"
     BG_RED = "\033[41m"
