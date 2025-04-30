@@ -16,11 +16,10 @@ from dotenv import load_dotenv
 from pathlib import Path
 from utils.stream_event_handler import StreamEventHandler
 
-
 from utils.config import Settings
 from utils.utilities import Utilities
 from utils.terminal_colors import TerminalColors as tc
-from ingestion import ConfluenceIngestion
+from tools.confluence.ingestion import ConfluenceIngestion
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -43,7 +42,7 @@ class RAGAgent:
         """Setup the tools for the RAG agent."""
         try:
             # First, run the ingestion process to get the documents
-            self.confluence_ingestion.extract_and_process_confluence_data()
+            #self.confluence_ingestion.extract_and_process_confluence_data()
 
             # Get all markdown files after ingestion
             data_dir = Path(Settings.DATA_DIRECTORY)
@@ -58,29 +57,13 @@ class RAGAgent:
             if not markdown_files:
                 logger.error(f"No markdown files found in {data_dir}")
                 return
-            # Créer un fichier unique pour stocker tout le contenu
-            all_content = ""
-            for file_path in markdown_files:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    title = Path(file_path).stem  # Utiliser le nom du fichier comme titre
-                    content = file.read()  # Lire le contenu du fichier
-
-                    # Ajouter le titre et le contenu dans le fichier global
-                    all_content += f"### {title}\n\n{content}\n\n---\n\n"
-
-            # Sauvegarder tout le contenu dans un fichier unique
-            output_file = os.path.join(Settings.DATA_DIRECTORY, "all_content.md")
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(all_content)
-
-            logger.info(f"All content saved to {output_file}")
-
+            
 
             self.toolset.add(functions)
             # Create a vector store with the ingested documents
             vector_store = await self.utilities.create_vector_store(
                 project_client=self.project_client,
-                files=[output_file],
+                files=markdown_files,
                 vector_store_name="Confluence Knowledge Base"
             )
 
@@ -142,8 +125,8 @@ class RAGAgent:
                 event_handler=StreamEventHandler(
                 functions=functions,project_client=self.project_client, utilities=self.utilities),
                 instructions=agent.instructions,
-                max_completion_tokens=10240*10,
-                max_prompt_tokens=20480*10,
+                max_completion_tokens=10240,
+                max_prompt_tokens=20480,
                 temperature=0.1,
                 top_p=0.1
             )
