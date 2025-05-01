@@ -1,7 +1,7 @@
 
 from semantic_kernel.functions import kernel_function
 
-from backend.src.service.profile_builder.profile_questions import \
+from backend.src.agents.profile_builder.profile_questions import \
     PROFILE_QUESTIONS
 
 
