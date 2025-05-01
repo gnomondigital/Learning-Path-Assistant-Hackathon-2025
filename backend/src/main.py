@@ -1,161 +1,109 @@
 import asyncio
-import logging
 import os
 
+import semantic_kernel as sk
 from azure.ai.projects.aio import AIProjectClient
-from azure.ai.projects.models import (Agent, AgentThread, AsyncFunctionTool,
-                                      AsyncToolSet, BingGroundingTool,
-                                      CodeInterpreterTool, FileSearchTool,
-                                      ToolDefinition)
-from azure.identity import DefaultAzureCredential
-from dotenv import load_dotenv
+from azure.identity.aio import DefaultAzureCredential
+from semantic_kernel.agents import (AgentGroupChat, AzureAIAgent,
+                                    AzureAIAgentSettings)
+from semantic_kernel.agents.strategies import TerminationStrategy
+from semantic_kernel.contents import AuthorRole
 
-from backend.src.prompts.profile_builder import PROMPT
-from backend.src.utils.stream_event_handler import StreamEventHandler
-from backend.src.utils.terminal_colors import TerminalColors as tc
-from backend.src.service.profile_builder.profile_builder import \
-    ProfileBuilderTool
-from backend.src.service.profile_builder.profile_questions import \
-    PROFILE_QUESTIONS
-from backend.src.utils.utilities import Utilities
+from backend.src.agents.confluence.academy_agent import AcademyAgent
+from backend.src.agents.profile_builder.profile_builder import \
+    ProfileBuilderAgent
+from backend.src.agents.web_agent.web_agent import WebAgent
+from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
+from backend.src.prompts.profile_builder import PROMPT as PROFILE_PROMPT
+from backend.src.prompts.search_prompt import PROMPT as WEB_PROMPT
+from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 
-logging.basicConfig(level=logging.ERROR)
-logger = logging.getLogger(__name__)
-
-load_dotenv()
-
+# ---- CONFIGURATION ----
 AGENT_NAME = "GD Academy"
-FONTS_ZIP = "fonts/fonts.zip"
-API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
 PROJECT_CONNECTION_STRING = os.environ["PROJECT_CONNECTION_STRING"]
+API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
 BING_CONNECTION_NAME = os.getenv("BING_CONNECTION_NAME")
-MAX_COMPLETION_TOKENS = 10240
-MAX_PROMPT_TOKENS = 20480
-# The LLM is used to generate the SQL queries.
-# Set the temperature and top_p low to get more deterministic results.
+
+# Azure agent settings
 TEMPERATURE = 0.1
 TOP_P = 0.1
-INSTRUCTIONS_FILE = None
+MAX_COMPLETION_TOKENS = 10240
+MAX_PROMPT_TOKENS = 20480
 
 
-toolset = AsyncToolSet()
-utilities = Utilities()
+# ---- TERMINATION STRATEGY ----
+class ApprovalTerminationStrategy(TerminationStrategy):
+    async def should_agent_terminate(self, agent, history):
+        return "approved" in history[-1].content.lower()
 
 
-project_client = AIProjectClient.from_connection_string(
-    credential=DefaultAzureCredential(),
-    conn_str=PROJECT_CONNECTION_STRING,
-)
-
-functions = AsyncFunctionTool(
-    functions=set(),
-)
-
-INSTRUCTIONS_FILE = "instructions/profile_builder.txt"
-
-
-async def add_profile_builder_tool() -> None:
-    """Add Profile Builder Tool to the agent's toolset."""
-
-    profile_builder = ProfileBuilderTool(
-        prompt_text=PROMPT, questions=PROFILE_QUESTIONS)
-    profile_builder_tool = AsyncFunctionTool(
-        {profile_builder.ask_question,
-         profile_builder.collect_responses,
-         profile_builder.execute})
-
-    # Add the Profile Builder Tool to your toolset
-    toolset.add(profile_builder_tool)
-    return profile_builder_tool
-
-
-async def initialize_agent(project_client: AIProjectClient = project_client) -> tuple[Agent, AgentThread]:
-    """Initialize the agent with profile-building instructions."""
-    profile_builder_tool = await add_profile_builder_tool()
-
-    agent = await project_client.agents.create_agent(
-        model=API_DEPLOYMENT_NAME,
-        name="Profile Builder Agent",
-        instructions=PROMPT,
-        toolset=toolset,
-        temperature=0.1
-    )
-
-    thread = await project_client.agents.create_thread()
-
-    return agent, thread
-
-
-async def cleanup(agent: Agent, thread: AgentThread) -> None:
-    """Cleanup the resources."""
-    await project_client.agents.delete_thread(thread.id)
-    await project_client.agents.delete_agent(agent.id)
-
-
-async def post_message(thread_id: str, content: str, agent: Agent, thread: AgentThread) -> None:
-    """Post a message to the Azure AI Agent Service."""
-    try:
-        await project_client.agents.create_message(
-            thread_id=thread_id,
-            role="user",
-            content=content,
-        )
-
-        stream = await project_client.agents.create_stream(
-            thread_id=thread.id,
-            agent_id=agent.id,
-            event_handler=StreamEventHandler(
-                functions=functions, project_client=project_client, utilities=utilities),
-            max_completion_tokens=MAX_COMPLETION_TOKENS,
-            max_prompt_tokens=MAX_PROMPT_TOKENS,
-            temperature=TEMPERATURE,
-            top_p=TOP_P,
-            instructions=agent.instructions,
-        )
-
-        async with stream as s:
-            await s.until_done()
-    except Exception as e:
-        utilities.log_msg_purple(
-            f"An error occurred posting the message: {e!s}")
-
-
+# ---- MAIN CHAT FUNCTIONALITY ----
 async def main() -> None:
-    """
-    Example questions: Sales by region, top-selling products, total shipping costs by region, show as a pie chart.
-    """
-    async with project_client:
-        agent, thread = await initialize_agent()
-        if not agent or not thread:
-            print(f"{tc.BG_BRIGHT_RED}Initialization failed. Ensure you have uncommented the instructions file for the lab.{tc.RESET}")
-            print("Exiting...")
-            return
+    print("Initializing Azure AI agents...\n")
+    ai_agent_settings = AzureAIAgentSettings()
 
-        cmd = None
+    async with (
+        DefaultAzureCredential() as creds,
+        AIProjectClient.from_connection_string(credential=creds, conn_str=PROJECT_CONNECTION_STRING) as client,
+    ):
+        # Build all agents with their plugins
+        profile_definition = await client.agents.create_agent(
+            model=ai_agent_settings.model_deployment_name,
+            name="profile_builder_agent",
+            instructions=PROFILE_PROMPT,
+        )
+        profile_agent = AzureAIAgent(
+            client=client,
+            definition=profile_definition,
+            plugins=[ProfileBuilderAgent()],
+        )
 
+        web_definition = await client.agents.create_agent(
+            model=ai_agent_settings.model_deployment_name,
+            name="web_agent",
+            instructions=WEB_PROMPT,
+        )
+        web_agent = AzureAIAgent(
+            client=client,
+            definition=web_definition,
+            plugins=[WebAgent()],
+        )
+
+        academy_definition = await client.agents.create_agent(
+            model=ai_agent_settings.model_deployment_name,
+            name="academy_agent",
+            instructions=GLOBAL_PROMPT,
+        )
+        academy_agent = AzureAIAgent(
+            client=client,
+            definition=academy_definition,
+            plugins=[AcademyAgent()],
+        )
+
+        # Group Chat with termination strategy
+        chat = AgentGroupChat(
+            agents=[profile_agent, web_agent, academy_agent],
+            termination_strategy=ApprovalTerminationStrategy(
+                agents=[web_agent], maximum_iterations=10
+            ),
+        )
+
+        print("💬 Type your question or message below (type 'exit' to quit):")
         while True:
-            prompt = input(
-                f"\n\n{tc.GREEN}Enter your query (type exit or save to finish): {tc.RESET}").strip()
-            if not prompt:
-                continue
-
-            cmd = prompt.lower()
-            if cmd in {"exit", "save"}:
+            user_input = input("\n👤 You: ")
+            if user_input.lower() in {"exit", "quit"}:
+                print("Exiting chat. Goodbye!")
                 break
 
-            await post_message(agent=agent, thread_id=thread.id, content=prompt, thread=thread)
-
-        if cmd == "save":
-            print("The agent has not been deleted, so you can continue experimenting with it in the Azure AI Foundry.")
-            print(
-                f"Navigate to https://ai.azure.com, select your project, then playgrounds, agents playgound, then select agent id: {agent.id}"
-            )
-        else:
-            await cleanup(agent, thread)
-            print("The agent resources have been cleaned up.")
+            try:
+                await chat.add_chat_message(message=user_input)
+                async for content in chat.invoke():
+                    print(
+                        f"🤖 {content.role} - {content.name or '*'}: {content.content}")
+            except Exception as e:
+                print(f"⚠️ Error during chat: {e}")
 
 
+# ---- ENTRY POINT ----
 if __name__ == "__main__":
-    print("Starting async program...")
     asyncio.run(main())
-    print("Program finished.")
