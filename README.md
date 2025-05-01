@@ -9,6 +9,9 @@ This project implements an AI-powered chatbot designed to assist users in skill 
 
 The system integrates **Azure** tools like **File Search** and **RAG (Retrieval-Augmented Generation)**, along with **Bing Search** to expand learning opportunities. Additionally, **Confluence** serves as an internal knowledge base for curated learning content.
 
+### Project Image
+
+![AI-Powered Upskilling Chatbot](./images/image.png)
 ---
 
 ## System Architecture
