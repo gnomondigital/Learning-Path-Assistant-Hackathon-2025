@@ -1,3 +1,4 @@
+GLOBAL_PROMPT = """
 GD Academy Chatbot System
 ========================================
 
@@ -342,3 +343,4 @@ Transition Statement
 ========================================
 End of GD Academy Chatbot System Documentation
 ========================================
+"""

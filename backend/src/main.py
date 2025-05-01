@@ -10,77 +10,54 @@ from semantic_kernel.agents.strategies import TerminationStrategy
 from semantic_kernel.contents import AuthorRole
 
 from backend.src.agents.confluence.academy_agent import AcademyAgent
-from backend.src.agents.web_agent.web_agent import WebAgent
-from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
-from backend.src.prompts.profile_builder import PROMPT
-from backend.src.prompts.search_prompt import PROMPT as WEB_PROMPT
 from backend.src.agents.profile_builder.profile_builder import \
     ProfileBuilderAgent
+from backend.src.agents.web_agent.web_agent import WebAgent
+from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
+from backend.src.prompts.profile_builder import PROMPT as PROFILE_PROMPT
+from backend.src.prompts.search_prompt import PROMPT as WEB_PROMPT
+from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 
-# Initialize the Semantic Kernel
-kernel = sk.Kernel()
+# ---- CONFIGURATION ----
+AGENT_NAME = "GD Academy"
+PROJECT_CONNECTION_STRING = os.environ["PROJECT_CONNECTION_STRING"]
+API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
+BING_CONNECTION_NAME = os.getenv("BING_CONNECTION_NAME")
+
+# Azure agent settings
+TEMPERATURE = 0.1
+TOP_P = 0.1
+MAX_COMPLETION_TOKENS = 10240
+MAX_PROMPT_TOKENS = 20480
 
 
+# ---- TERMINATION STRATEGY ----
 class ApprovalTerminationStrategy(TerminationStrategy):
-    """A strategy for determining when an agent should terminate."""
-
     async def should_agent_terminate(self, agent, history):
-        """Check if the agent should terminate."""
         return "approved" in history[-1].content.lower()
 
 
-AGENT_NAME = "GD Academy"
-FONTS_ZIP = "fonts/fonts.zip"
-API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
-PROJECT_CONNECTION_STRING = os.environ["PROJECT_CONNECTION_STRING"]
-BING_CONNECTION_NAME = os.getenv("BING_CONNECTION_NAME")
-AZURE_AI_INFERENCE_ENDPOINT = os.getenv("AZURE_AI_INFERENCE_ENDPOINT")
-AZURE_AI_INFERENCE_API_KEY = os.getenv("AZURE_AI_INFERENCE_API_KEY")
-MAX_COMPLETION_TOKENS = 10240
-MAX_PROMPT_TOKENS = 20480
-# The LLM is used to generate the SQL queries.
-# Set the temperature and top_p low to get more deterministic results.
-TEMPERATURE = 0.1
-TOP_P = 0.1
-INSTRUCTIONS_FILE = None
-
-# Simulate a conversation with the agent
-TASK = "a slogan for a new line of electric cars."
-project_client = AIProjectClient.from_connection_string(
-    credential=DefaultAzureCredential(),
-    conn_str=PROJECT_CONNECTION_STRING,
-)
-
-
-USER_INPUTS = [
-    "Hello, I am John Doe.",
-    "What is your name?",
-    "What is my name?",
-]
-
-
+# ---- MAIN CHAT FUNCTIONALITY ----
 async def main() -> None:
+    print("Initializing Azure AI agents...\n")
     ai_agent_settings = AzureAIAgentSettings()
 
     async with (
         DefaultAzureCredential() as creds,
-        AzureAIAgent.create_client(credential=creds) as client,
+        AIProjectClient.from_connection_string(credential=creds, conn_str=PROJECT_CONNECTION_STRING) as client,
     ):
-        # 1. Create an agent on the Azure AI agent service
-        profile_builder_definition = await client.agents.create_agent(
+        # Build all agents with their plugins
+        profile_definition = await client.agents.create_agent(
             model=ai_agent_settings.model_deployment_name,
             name="profile_builder_agent",
-            instructions=PROMPT,
+            instructions=PROFILE_PROMPT,
         )
-
-        # 2. Create a Semantic Kernel agent for the Azure AI agent
-        profile_builder_agent = AzureAIAgent(
+        profile_agent = AzureAIAgent(
             client=client,
-            definition=profile_builder_definition,
-            plugins=[ProfileBuilderAgent()],  # Add the plugin to the agent
+            definition=profile_definition,
+            plugins=[ProfileBuilderAgent()],
         )
 
-        # 1 Create an academy agent
         web_definition = await client.agents.create_agent(
             model=ai_agent_settings.model_deployment_name,
             name="web_agent",
@@ -94,8 +71,8 @@ async def main() -> None:
 
         academy_definition = await client.agents.create_agent(
             model=ai_agent_settings.model_deployment_name,
-            name="academy_learning_agent",
-            instructions=ACADEMY_PROMPT,
+            name="academy_agent",
+            instructions=GLOBAL_PROMPT,
         )
         academy_agent = AzureAIAgent(
             client=client,
@@ -103,24 +80,30 @@ async def main() -> None:
             plugins=[AcademyAgent()],
         )
 
-        # 5. Place the agents in a group chat with a custom termination strategy
+        # Group Chat with termination strategy
         chat = AgentGroupChat(
-            agents=[profile_builder_agent, academy_agent, web_agent],
+            agents=[profile_agent, web_agent, academy_agent],
             termination_strategy=ApprovalTerminationStrategy(
-                agents=[web_agent], maximum_iterations=10),
+                agents=[web_agent], maximum_iterations=10
+            ),
         )
 
-        try:
-            await chat.add_chat_message(message=TASK)
-            print(f"# {AuthorRole.USER}: '{TASK}'")
-            # 7. Invoke the chat
-            async for content in chat.invoke():
-                print(
-                    f"# {content.role} - {content.name or '*'}: '{content.content}'")
-        except Exception as e:
-            print(f"Error: {e}")
-            raise e
+        print("💬 Type your question or message below (type 'exit' to quit):")
+        while True:
+            user_input = input("\n👤 You: ")
+            if user_input.lower() in {"exit", "quit"}:
+                print("Exiting chat. Goodbye!")
+                break
+
+            try:
+                await chat.add_chat_message(message=user_input)
+                async for content in chat.invoke():
+                    print(
+                        f"🤖 {content.role} - {content.name or '*'}: {content.content}")
+            except Exception as e:
+                print(f"⚠️ Error during chat: {e}")
 
 
+# ---- ENTRY POINT ----
 if __name__ == "__main__":
     asyncio.run(main())
