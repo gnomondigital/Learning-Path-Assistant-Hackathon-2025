@@ -1,1 +1,0 @@
-CI - Pipeline - Data EngineerCD - Pipeline - Data EngineerCI/CD - Devops

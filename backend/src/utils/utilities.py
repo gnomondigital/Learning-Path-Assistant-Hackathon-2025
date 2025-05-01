@@ -16,11 +16,6 @@ class Utilities:
         self.shared_files_path = Path("data")
         self.shared_files_path.mkdir(exist_ok=True)
 
-    @property
-    def shared_files_path(self) -> Path:
-        """Get the path to the shared files directory."""
-        return Path(__file__).parent.parent.parent.resolve()
-
     def clean_html_and_emojis(text):
         text = html.unescape(text)
         text_no_html = re.sub(r"<[^>]+>", "", text)
@@ -50,10 +45,6 @@ class Utilities:
         """Load instructions from a file."""
         with open(instructions_file, "r", encoding="utf-8", errors="ignore") as file:
             return file.read()
-
-    def log_msg_purple(self, message: str) -> None:
-        """Log a message in purple color."""
-        logger.info(f"{tc.PURPLE}{message}{tc.RESET}")
 
     def log_msg_green(self, msg: str) -> None:
         """Print a message in green."""
