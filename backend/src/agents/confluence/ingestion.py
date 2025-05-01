@@ -1,16 +1,19 @@
-import requests
-import os
 import json
+import logging
+import os
+
+import requests
+from requests.auth import HTTPBasicAuth
 from utils.config import Settings
 from utils.utilities import Utilities
-from requests.auth import HTTPBasicAuth
-import logging
 
 logger = logging.getLogger('ingestions')
 
+
 class ConfluenceIngestion:
     def __init__(self):
-        self.auth = HTTPBasicAuth(Settings.CONFLUENCE_USERNAME, Settings.CONFLUENCE_API_KEY)
+        self.auth = HTTPBasicAuth(
+            Settings.CONFLUENCE_USERNAME, Settings.CONFLUENCE_API_KEY)
         self.base_url = f"{Settings.CONFLUENCE_URL}/rest/api"
 
     def fetch_children(self, page_id):
@@ -82,7 +85,8 @@ class ConfluenceIngestion:
         """Extract data from Confluence, clean, and save it."""
         extracted_data = self.extract_confluence_data()
         if extracted_data:
-            logger.info(f"Extracted {len(extracted_data)} pages from Confluence.")
+            logger.info(
+                f"Extracted {len(extracted_data)} pages from Confluence.")
             self.save_to_json(extracted_data)
             for page in extracted_data:
                 self.fetch_page_details(page["page_id"])
@@ -102,12 +106,14 @@ class ConfluenceIngestion:
             self.save_to_markdown(cleaned_content, title)
             return {"page_id": page_id, "title": title, "content": cleaned_content}
         else:
-            logger.error(f"Error fetching details for page {page_id}: {response.status_code}")
+            logger.error(
+                f"Error fetching details for page {page_id}: {response.status_code}")
             return None
 
     def save_to_markdown(self, content, title, directory=Settings.DATA_DIRECTORY):
         """Save page content to markdown."""
-        safe_title = title.replace("/", "_").replace("\\", "_").replace(" ", "_")
+        safe_title = title.replace(
+            "/", "_").replace("\\", "_").replace(" ", "_")
         filename = os.path.join(directory, f"{safe_title}.md")
         os.makedirs(directory, exist_ok=True)
         with open(filename, "w", encoding="utf-8") as f:
