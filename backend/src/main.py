@@ -40,7 +40,7 @@ class ApprovalTerminationStrategy(TerminationStrategy):
 # ---- MAIN CHAT FUNCTIONALITY ----
 async def main() -> None:
     print("Initializing Azure AI agents...\n")
-    ai_agent_settings = AzureAIAgentSettings()
+    ai_agent_settings = AzureAIAgentSettings(model_deployment_name=API_DEPLOYMENT_NAME)
 
     async with (
         DefaultAzureCredential() as creds,
