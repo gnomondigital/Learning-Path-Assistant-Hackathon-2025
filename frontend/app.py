@@ -1,78 +1,37 @@
-import logging
+# frontend/app.py
 import os
 
 import chainlit as cl
-from azure.ai.projects import AIProjectClient
-from azure.ai.projects.models import MessageRole
-from azure.identity import DefaultAzureCredential
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+from backend.src.main import SemanticKernelAgentHandler
 
-# Disable verbose connection logs
-logger = logging.getLogger("azure.core.pipeline.policies.http_logging_policy")
-logger.setLevel(logging.WARNING)
+config = {
+    "AZURE_API_KEY": os.getenv("AZURE_AI_INFERENCE_API_KEY"),
+    "DEPLOYMENT_NAME": os.getenv("API_DEPLOYMENT_NAME"),
+    "AZURE_ENDPOINT": os.getenv("AZURE_AI_INFERENCE_ENDPOINT"),
+    "PROMPT": "You are GD Academy's AI assistant. Answer questions or delegate to other agents.",
+}
 
-AIPROJECT_CONNECTION_STRING = os.getenv("PROJECT_CONNECTION_STRING")
-AGENT_ID = os.getenv("AGENT_ID")
-
-# Create an instance of the AIProjectClient using DefaultAzureCredential
-project_client = AIProjectClient.from_connection_string(
-    conn_str=AIPROJECT_CONNECTION_STRING, credential=DefaultAzureCredential()
-)
-
-# Chainlit setup
+agent_handler = SemanticKernelAgentHandler()
 
 
 @cl.on_chat_start
 async def on_chat_start():
-    # Create a thread for the agent
-    if not cl.user_session.get("thread_id"):
-        thread = project_client.agents.create_thread()
-
-        cl.user_session.set("thread_id", thread.id)
-        print(f"New Thread ID: {thread.id}")
+    # Set a unique user_id for the session (can be based on user info)
+    cl.user_session.set("user_id", cl.user_session.id)
+    await cl.Message(content="Hi! I'm your assistant. Ask me anything.").send()
 
 
 @cl.on_message
 async def on_message(message: cl.Message):
-    thread_id = cl.user_session.get("thread_id")
-
+    user_id = cl.user_session.get("user_id")
     try:
-        # Show thinking message to user
-        msg = await cl.Message("thinking...", author="agent").send()
+        thinking = await cl.Message("Thinking...", author="agent").send()
 
-        project_client.agents.create_message(
-            thread_id=thread_id,
-            role="user",
-            content=message.content,
-        )
+        # Send message to backend Semantic Kernel agent
+        response = await agent_handler.send_message(user_id=user_id, message=message.content)
 
-        # Run the agent to process tne message in the thread
-        run = project_client.agents.create_and_process_run(
-            thread_id=thread_id, agent_id=AGENT_ID)
-        print(f"Run finished with status: {run.status}")
-
-        # Check if you got "Rate limit is exceeded.", then you want to increase the token limit
-        if run.status == "failed":
-            raise Exception(run.last_error)
-
-        # Get all messages from the thread
-        messages = project_client.agents.list_messages(thread_id)
-
-        # Get the last message from the agent
-        last_msg = messages.get_last_text_message_by_role(MessageRole.AGENT)
-        if not last_msg:
-            raise Exception("No response from the model.")
-
-        msg.content = last_msg.text.value
-        await msg.update()
-
+        thinking.content = response
+        await thinking.update()
     except Exception as e:
-        await cl.Message(content=f"Error: {str(e)}").send()
-
-
-if __name__ == "__main__":
-    # Chainlit will automatically run the application
-    pass
+        await cl.Message(f"Error: {e}").send()
