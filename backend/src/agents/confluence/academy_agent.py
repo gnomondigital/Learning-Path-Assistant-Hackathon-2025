@@ -1,7 +1,9 @@
 import base64
 import re
+
 import requests
 from semantic_kernel.functions import kernel_function
+
 from backend.src.utils.config import Settings
 
 
@@ -19,7 +21,6 @@ class AcademyAgent:
         self.base_url = base_url.rstrip("/")
         self.api_base = f"{self.base_url}/rest/api"
         self.auth = (username, api_token)
-
         # Create auth header from credentials
         auth_str = f"{username}:{api_token}"
         encoded_auth = base64.b64encode(auth_str.encode()).decode()
@@ -33,7 +34,6 @@ class AcademyAgent:
     )
     def search_content(self, query: str, limit: str = "5") -> str:
         try:
-            limit_int = int(limit)
             endpoint = f"{self.api_base}/content/search"
             params = {
                 "cql": f'text ~ "{query}"',  # Make sure the query string is correctly formatted for Confluence
@@ -53,7 +53,6 @@ class AcademyAgent:
             # If no results are found
             if results.get("size", 0) == 0:
                 return "No results found in Confluence for your query."
-
             formatted_results = []
             for i, result in enumerate(results.get("results", []), 1):
                 title = result.get("title", "Untitled")
@@ -65,15 +64,12 @@ class AcademyAgent:
                     if len(content) > 200
                     else content
                 )
-
                 formatted_results.append(
                     f"{i}. **{title}** (in {space})\n"
                     f"   URL: {url}\n"
                     f"   Snippet: {content}\n"
                 )
-
             return "\n".join(formatted_results)
-
         except requests.exceptions.RequestException as e:
             return f"Error searching Confluence: {str(e)}"
 
