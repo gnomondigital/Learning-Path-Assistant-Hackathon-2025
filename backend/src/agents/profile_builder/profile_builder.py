@@ -1,70 +1,85 @@
-
 from semantic_kernel.functions import kernel_function
-
-from backend.src.agents.profile_builder.profile_questions import \
-    PROFILE_QUESTIONS
+from backend.src.agents.profile_builder.profile_questions import PROFILE_QUESTIONS
 
 
-class ProfileBuilderAgent():
+class ProfileBuilderAgent:
     def __init__(self, questions=PROFILE_QUESTIONS):
-        """
-        Initialize the ProfileBuilderTool with the necessary instructions and questions.
-
-        :param prompt_text: The instructions or guidelines to provide context to the model.
-        :param questions: List of questions (defaults to the imported PROFILE_QUESTIONS).
-        """
         self.questions = questions
         self.profile = {}
+        self.current_index = 0
+        self.last_response = None
+        self.is_finished = False
 
     @kernel_function(
-        description="Format a question with context and options for the user.",
-        name="ask_question"
+        name="start_profile_flow",
+        description="Start the profile-building process with a welcoming message and first question."
     )
-    def ask_question(self, question_obj):
+    def start_profile_flow(self) -> str:
         """
-        Method to format and present a question to the user, returning the response.
-
-        :param question_obj: Dictionary with question and options.
-        :return: User's answer (either selected or entered).
+        Start the profile-building process with the first question.
         """
-        question = question_obj['question']
-        options = "\n".join(question_obj['options'])
+        self.current_index = 0
+        self.profile = {}
+        self.last_response = None
+        self.is_finished = False
 
-        # Construct a full prompt
-        prompt = f"{question}\n\n{options}"
-        return prompt
+        intro = "👋 Welcome! Let's build your personalized learning profile step by step.\n"
+        return intro + "\n" + self._format_current_question()
 
     @kernel_function(
-        description="Collect structured responses from the user.",
-        name="collect_responses"
+        name="continue_profile_flow",
+        description="Continue the flow based on user's last answer, return next question or final profile."
     )
-    def collect_responses(self, user_responses):
+    def continue_profile_flow(self, user_input: str) -> str:
         """
-        Process user responses and build a structured profile.
-
-        :param user_responses: Dictionary with the user responses.
-        :return: The final user profile as a dictionary.
+        Process the user’s response and return the next question or final profile summary.
         """
-        for question in self.questions:
-            answer = user_responses.get(question['key'])
-            if answer:
-                self.profile[question['key']] = answer
-            else:
-                # or handle as incomplete if required
-                self.profile[question['key']] = None
+        if self.is_finished:
+            return "✅ Your profile is already complete. Type `get_final_profile` to review it."
 
+        # Save last response
+        current_question = self.questions[self.current_index]
+        self.profile[current_question["key"]] = user_input.strip()
+        self.last_response = user_input.strip()
+        self.current_index += 1
+
+        # If we're done
+        if self.current_index >= len(self.questions):
+            self.is_finished = True
+            return "🎉 All questions completed! Type `get_final_profile` to see your results."
+
+        # Otherwise, ask next question with context
+        return self._build_contextual_prompt()
+
+    @kernel_function(
+        name="get_final_profile",
+        description="Return the structured summary of the user's answers."
+    )
+    def get_final_profile(self) -> dict:
+        """
+        Return the completed profile dictionary.
+        """
         return self.profile
 
-    @kernel_function(
-        description="Execute the profile builder and return a completed profile.",
-        name="execute"
-    )
-    async def execute(self, user_responses):
+    def _format_current_question(self) -> str:
         """
-        Main execution method that calls the profile-building process.
+        Format current question with options if they exist.
+        """
+        question_obj = self.questions[self.current_index]
+        question = question_obj["question"]
+        options = question_obj.get("options")
 
-        :param user_responses: Dictionary of user responses (answers to the questions).
-        :return: Structured profile.
+        if options:
+            options_text = "\n".join(f"- {opt}" for opt in options)
+            return f"{question}\n\n{options_text}"
+        return question
+
+    def _build_contextual_prompt(self) -> str:
         """
-        # Collect responses and build profile
-        return self.collect_responses(user_responses)
+        Provide next question along with context from previous answer.
+        """
+        confirmation = f"✅ Got it! You answered: '{self.last_response}'.\n"
+        transition = "Let's move to the next question:\n"
+        next_question = self._format_current_question()
+
+        return f"{confirmation}\n{transition}\n{next_question}"

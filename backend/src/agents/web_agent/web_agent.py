@@ -27,24 +27,22 @@ class WebAgent:
             conn_str=Settings.PROJECT_CONNECTION_STRING,
         )
         bing_conn = await self.client.connections.get(
-            connection_name=Settings.BING_CONNECTION_NAME,
-        )
+            connection_name=Settings.BING_CONNECTION_NAME)
         if not bing_conn:
             raise ValueError(
-                f"Connection {Settings.BING_CONNECTION_NAME} not found in the project."
-            )
-        conn_id = bing_conn.id
-        print(f"Connection ID: {conn_id}")
-        bing = BingGroundingTool(connection_id=conn_id)
+                f"Bing connection '{Settings.BING_CONNECTION_NAME}' not found.")
 
+        conn_id = bing_conn.id
+        print(f"Using Bing connection ID: {conn_id}")
+        bing = BingGroundingTool(connection_id=conn_id)
         self.agent = await self.client.agents.create_agent(
             model=os.environ["MODEL_DEPLOYMENT_NAME"],
-            name="RAG-Bing-Agent",
+            name="Bing-Agent",
             instructions="You can search the web using Bing.",
             tools=bing.definitions,
-            headers={"x-ms-enable-preview": "true"},
+            headers={"x-ms-enable-preview": "true"}
         )
-        print(f"Agent ID: {self.agent.id}")
+        print(f"Created agent, ID: {self.agent.id}")
         self.thread = await self.client.agents.create_thread()
 
     @kernel_function(name="search_web", description="Perform a Bing web search")
