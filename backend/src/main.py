@@ -2,10 +2,8 @@ import asyncio
 import os
 from typing import Annotated
 
-from azure.ai.projects.aio import AIProjectClient
-from azure.identity.aio import DefaultAzureCredential
 from semantic_kernel import Kernel
-from semantic_kernel.agents import (AzureAIAgentSettings, ChatCompletionAgent,
+from semantic_kernel.agents import (ChatCompletionAgent,
                                     ChatHistoryAgentThread)
 from semantic_kernel.connectors.ai import FunctionChoiceBehavior
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
