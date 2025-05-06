@@ -32,17 +32,25 @@ class AcademyAgent:
     @kernel_function(
         name="search_confluence", description="Search for content in Confluence"
     )
-    def search_content(self, query: str) -> str:
+    def search_content(self, query: str, limit: str = "5") -> str:
         try:
             endpoint = f"{self.api_base}/content/search"
             params = {
-                "cql": f'text ~ "{query}"',
+                "cql": f'text ~ "{query}"',  # Make sure the query string is correctly formatted for Confluence
+                "limit": limit_int,
                 "expand": "body.view,space",
             }
-            response = requests.get(
-                endpoint, headers=self.headers, params=params)
+
+            # Make API call
+            response = requests.get(endpoint, headers=self.headers, params=params)
+
+            # Check for request success
             response.raise_for_status()
+
+            # Parse the JSON response
             results = response.json()
+
+            # If no results are found
             if results.get("size", 0) == 0:
                 return "No results found in Confluence for your query."
             formatted_results = []
@@ -50,8 +58,7 @@ class AcademyAgent:
                 title = result.get("title", "Untitled")
                 space = result.get("space", {}).get("name", "Unknown Space")
                 url = f"{self.base_url}{result.get('_links', {}).get('webui', '')}"
-                content = result.get("body", {}).get(
-                    "view", {}).get("value", "")
+                content = result.get("body", {}).get("view", {}).get("value", "")
                 content = (
                     re.sub(r"<[^>]+>", "", content)[:200] + "..."
                     if len(content) > 200
@@ -73,22 +80,29 @@ class AcademyAgent:
         try:
             endpoint = f"{self.api_base}/content/{page_id}"
             params = {"expand": "body.view"}
+
             # Make API call
-            response = requests.get(
-                endpoint, headers=self.headers, params=params)
+            response = requests.get(endpoint, headers=self.headers, params=params)
+
             # Check for request success
             response.raise_for_status()
+
             # Parse the JSON response
             result = response.json()
+
             title = result.get("title", "Untitled")
             content = result.get("body", {}).get("view", {}).get("value", "")
             content = re.sub(r"<[^>]+>", "", content)
+
             url = f"{self.base_url}{result.get('_links', {}).get('webui', '')}"
             return f"# {title}\n\n{content}\n\nSource: {url}"
+
         except requests.exceptions.RequestException as e:
             return f"Error retrieving Confluence page: {str(e)}"
 
-    @kernel_function(name="get_recent_pages", description="Get recent pages from a Confluence space")
+    @kernel_function(
+        name="get_recent_pages", description="Get recent pages from a Confluence space"
+    )
     def get_recent_pages(self, space_key: str, limit: str = "5") -> str:
         try:
             limit_int = int(limit)
@@ -97,7 +111,7 @@ class AcademyAgent:
             params = {
                 "cql": cql_query,
                 "limit": limit_int,
-                "expand": "content.history,content._links"
+                "expand": "content.history,content._links",
             }
 
             response = requests.get(endpoint, headers=self.headers, params=params)
@@ -114,13 +128,17 @@ class AcademyAgent:
                 page_id = content.get("id", "")
                 webui_link = content.get("_links", {}).get("webui", "")
                 url = f"{self.base_url}{webui_link}"
-                modified = content.get("history", {}).get("lastUpdated", {}).get("when", "Unknown")[:10]
-
-                formatted_results.append(
-                    f"{i}. **{title}** (ID: {page_id})\n"
-                    f"   URL: {url}\n"
-                    f"   Last modified: {modified}\n"
+                modified = (
+                    content.get("history", {})
+                    .get("lastUpdated", {})
+                    .get("when", "Unknown")[:10]
                 )
+
+            formatted_results.append(
+                f"{i}. **{title}** (ID: {page_id})\n"
+                f"  URL: {url}\n"
+                f"  Last modified: {modified}\n"
+            )
 
             return "\n".join(formatted_results)
 
