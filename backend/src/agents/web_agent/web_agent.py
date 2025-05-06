@@ -7,6 +7,7 @@ from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import AsyncToolSet, BingGroundingTool
 from azure.identity.aio import DefaultAzureCredential
 from semantic_kernel.functions import kernel_function
+from backend.src.prompts.search_prompt import PROMPT
 
 from backend.src.utils.config import Settings
 
@@ -38,7 +39,7 @@ class WebAgent:
         self.agent = await self.client.agents.create_agent(
             model=os.environ["MODEL_DEPLOYMENT_NAME"],
             name="Bing-Agent",
-            instructions="You can search the web using Bing.",
+            instructions=PROMPT,
             tools=bing.definitions,
             headers={"x-ms-enable-preview": "true"}
         )
