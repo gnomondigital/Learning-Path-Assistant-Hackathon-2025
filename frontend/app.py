@@ -1,7 +1,9 @@
-# frontend/app.py
 import os
+import sys
 
 import chainlit as cl
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../", "backend/", "src/"))
 
 from backend.src.main import SemanticKernelAgentHandler
 
@@ -17,21 +19,26 @@ agent_handler = SemanticKernelAgentHandler()
 
 @cl.on_chat_start
 async def on_chat_start():
-    # Set a unique user_id for the session (can be based on user info)
-    cl.user_session.set("user_id", cl.user_session.id)
+    #cl.user_session.set("user_id", cl.user_session)
     await cl.Message(content="Hi! I'm your assistant. Ask me anything.").send()
 
 
 @cl.on_message
 async def on_message(message: cl.Message):
-    user_id = cl.user_session.get("user_id")
+    #user_id = cl.user_session.get("user_id")
     try:
         thinking = await cl.Message("Thinking...", author="agent").send()
 
-        # Send message to backend Semantic Kernel agent
-        response = await agent_handler.send_message(user_id=user_id, message=message.content)
+        response = await agent_handler.process_message(user_message=message.content)
 
-        thinking.content = response
+        if hasattr(response, 'content'):
+            response_text = str(response.content)  
+        else:
+            response_text = "Sorry, I couldn't understand the response format."
+
+        # Set the response content in the thinking message
+        thinking.content = response_text
         await thinking.update()
+
     except Exception as e:
         await cl.Message(f"Error: {e}").send()
