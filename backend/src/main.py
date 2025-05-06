@@ -33,6 +33,7 @@ async def main() -> None:
         AcademyAgent(),
         plugin_name="AcademyAgent",
     )
+    
     settings = kernel.get_prompt_execution_settings_from_service_id(
         service_id=service_id
     )
