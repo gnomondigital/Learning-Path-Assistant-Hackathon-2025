@@ -17,9 +17,4 @@ Instructions:
 
 Tone: Clear, helpful, age-appropriate for learners, and fact-based.
 
-Example:
-**User**: What are the current trends in AI education?
-**Agent**: Based on recent articles, AI education is increasingly focused on hands-on experience, ethical frameworks, and integration into K-12 curricula.  
-• [AI in Schools – EdTech Magazine](https://edtechmagazine.com)  
-• [How AI is changing education – World Economic Forum](https://weforum.org).
 """
