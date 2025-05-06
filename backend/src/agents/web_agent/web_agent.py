@@ -51,24 +51,32 @@ class WebAgent:
         if not self.agent or not self.thread:
             raise RuntimeError("Agent not initialized. Call init() first.")
 
-        await self.client.agents.create_message(
-            thread_id=self.thread.id,
-            role="user",
-            content=query
+        message = await self.client.agents.create_message(
+            thread_id=self.thread.id, role="user", content=query
         )
+        # Create and process agent run in thread with tools
         run = await self.client.agents.create_and_process_run(
-            thread_id=self.thread.id, agent_id=self.agent.id)
+            thread_id=self.thread.id, agent_id=self.agent.id
+        )
         print(f"Run finished with status: {run.status}")
         run_steps = await self.client.agents.list_run_steps(
-            run_id=run.id, thread_id=self.thread.id)
-        run_steps_data = run_steps['data']
+            run_id=run.id, thread_id=self.thread.id
+        )
+        run_steps_data = run_steps.data if hasattr(run_steps, "data") else None
         print(f"Last run step detail: {run_steps_data}")
+
         if run.status == "failed":
             print(f"Run failed: {run.last_error}")
-        # Delete the assistant when done
+            return "Run failed. No result from Bing."
         await self.client.agents.delete_agent(self.agent.id)
-        print("Deleted agent")
 
-        # Fetch and log all messages
-        messages = await self.client.agents.list_messages(thread_id=self.thread.id)
-        return messages
+        response = await self.client.agents.list_messages(
+            thread_id=self.thread.id
+        )
+        return response
+
+    async def cleanup(self):
+        if self.thread:
+            await self.client.agents.delete_thread(self.thread.id)
+        if self.agent:
+            await self.client.agents.delete_agent(self.agent.id)

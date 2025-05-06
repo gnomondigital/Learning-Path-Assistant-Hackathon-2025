@@ -9,10 +9,6 @@ from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.confluence.academy_agent import AcademyAgent
-from backend.src.agents.profile_builder.profile_builder import \
-    ProfileBuilderAgent
-from backend.src.agents.web_agent.web_agent import WebAgent
-from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 
 # ---- CONFIGURATION ----
 API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
@@ -37,36 +33,31 @@ async def main() -> None:
         AcademyAgent(),
         plugin_name="AcademyAgent",
     )
-    kernel.add_plugin(
-        WebAgent(),
-        plugin_name="WebAgent",
-    )
-    kernel.add_plugin(
-        ProfileBuilderAgent(),
-        plugin_name="ProfileBuilderAgent",
-    )
-
     settings = kernel.get_prompt_execution_settings_from_service_id(
-        service_id=service_id)
+        service_id=service_id
+    )
     settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
 
     agent = ChatCompletionAgent(
         kernel=kernel,
         name="Host",
-        instructions=GLOBAL_PROMPT,
+        instructions="Answer questions based on the profile builder, web search, or academy information.",
         arguments=KernelArguments(settings=settings),
     )
+
     thread: ChatHistoryAgentThread = None
     while True:
-        # Get user input
-        user_input = input("User: ")
-        if user_input.lower() == "exit":
-            await thread.delete() if thread else None
+        input_text = input("Enter your message (or 'exit' to quit): ")
+        if input_text.lower() == "exit":
             break
-        # Add user message to history
-        async for response in agent.invoke(messages=user_input, thread=thread):
-            print(f"# {response.name}: {response}")
+        print(f"User: {input_text}")
+        # 5. Invoke the agent for a response
+        async for response in agent.invoke(messages=input_text, thread=thread):
+            print(f"Agent :{response.name}: {response}")
             thread = response.thread
+
+    # 6. Cleanup: Clear the thread
+    await thread.delete() if thread else None
 
 
 # ---- ENTRY POINT ----
