@@ -9,7 +9,9 @@ from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.confluence.academy_agent import AcademyAgent
-
+from backend.src.agents.web_agent.web_agent import WebAgent
+from backend.src.agents.profile_builder.profile_builder import ProfileBuilderAgent
+from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 # ---- CONFIGURATION ----
 API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
 AZURE_AI_INFERENCE_API_KEY = os.getenv(
@@ -31,7 +33,15 @@ async def main() -> None:
     ))
     kernel.add_plugin(
         AcademyAgent(),
-        plugin_name="AcademyAgent",
+        plugin_name="Academy_Agent",
+    )
+    kernel.add_plugin(
+        WebAgent(),
+        plugin_name="Web_search_Agent",
+    )
+    kernel.add_plugin(
+        ProfileBuilderAgent(),
+        plugin_name="profile_builder_agent",
     )
     
     settings = kernel.get_prompt_execution_settings_from_service_id(
@@ -42,7 +52,7 @@ async def main() -> None:
     agent = ChatCompletionAgent(
         kernel=kernel,
         name="Host",
-        instructions="Answer questions based on the profile builder, web search, or academy information.",
+        instructions=GLOBAL_PROMPT,
         arguments=KernelArguments(settings=settings),
     )
 

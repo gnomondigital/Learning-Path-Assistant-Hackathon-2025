@@ -5,6 +5,7 @@ import requests
 from semantic_kernel.functions import kernel_function
 
 from backend.src.utils.config import Settings
+from backend.src.prompts.academy_instructions import PROMPT
 
 
 class AcademyAgent:
@@ -34,9 +35,11 @@ class AcademyAgent:
     )
     def search_content(self, query: str, limit: str = "5") -> str:
         try:
+            prompt = PROMPT
             endpoint = f"{self.api_base}/content/search"
             params = {
                 "cql": f'text ~ "{query}"',
+                "limit": limit,
                 "expand": "body.view,space",
             }
 
@@ -80,6 +83,7 @@ class AcademyAgent:
     )
     def get_page_content(self, page_id: str) -> str:
         try:
+            prompt = PROMPT
             endpoint = f"{self.api_base}/content/{page_id}"
             params = {"expand": "body.view"}
 
