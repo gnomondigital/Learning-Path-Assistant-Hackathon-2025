@@ -13,6 +13,10 @@ from backend.src.agents.profile_builder.profile_builder import \
     ProfileBuilderAgent
 from backend.src.agents.web_agent.web_agent import WebAgent
 from backend.src.instructions.instructions_system import GLOBAL_PROMPT
+from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
+from backend.src.prompts.profile_builder import \
+    PROMPT as PROFILE_BUILDER_PROMPT
+from backend.src.prompts.search_prompt import PROMPT as SEARCH_PROMPT
 
 # ---- CONFIGURATION ----
 API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
@@ -47,7 +51,10 @@ class SemanticKernelAgentHandler:
         self.agent = ChatCompletionAgent(
             kernel=self.kernel,
             name="Host",
-            instructions=GLOBAL_PROMPT,
+            instructions=GLOBAL_PROMPT.format(
+            PROFILE_BUILDER=PROFILE_BUILDER_PROMPT,
+            WEB_SEARCH_PROMPT=SEARCH_PROMPT,
+            CONFLUENCE_PROMPT=ACADEMY_PROMPT),
             arguments=KernelArguments(settings=settings),
         )
         self.thread = None
