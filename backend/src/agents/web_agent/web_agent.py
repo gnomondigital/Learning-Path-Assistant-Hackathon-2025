@@ -7,8 +7,8 @@ from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import AsyncToolSet, BingGroundingTool
 from azure.identity.aio import DefaultAzureCredential
 from semantic_kernel.functions import kernel_function
-from backend.src.prompts.search_prompt import PROMPT
 
+from backend.src.prompts.search_prompt import PROMPT
 from backend.src.utils.config import Settings
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class WebAgent:
         print(f"Created agent, ID: {self.agent.id}")
         self.thread = await self.client.agents.create_thread()
 
-    @kernel_function(name="search_web", description="Perform a Bing web search")
+    @kernel_function(name="search_web", description="Perform a Bing web search, search the web as an external tool for data sources . the query can be content, news, or sources for learning path")
     async def search_web(self, query: str) -> str:
         await self.init()
         if not self.agent or not self.thread:
