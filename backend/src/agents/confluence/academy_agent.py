@@ -30,7 +30,7 @@ class AcademyAgent:
         }
 
     @kernel_function(
-        name="search_confluence", description="Search for content in a specific subject, "
+        name="search_confluence", description="Search for content in a specific subject, confluece is considered as an internal knowledge base. Used to retrieve content for all subjects and building learning paths."
     )
     def search_content(self, query: str) -> str:
         try:
@@ -75,7 +75,7 @@ class AcademyAgent:
             return f"Error searching Confluence: {str(e)}"
 
     @kernel_function(
-        name="get_page_by_id", 
+        name="get_page_by_id",
         description="Get page content from Confluence by ID"
     )
     def get_page_content(self, page_id: str) -> str:

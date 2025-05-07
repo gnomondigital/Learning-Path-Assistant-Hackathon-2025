@@ -5,6 +5,7 @@ from backend.src.agents.profile_builder.profile_questions import \
     PROFILE_QUESTIONS
 
 
+
 class ProfileBuilderAgent:
     def __init__(self, questions=PROFILE_QUESTIONS):
         self.questions = questions
@@ -192,7 +193,6 @@ class ProfileBuilderAgent:
 
         if placeholder:
             formatted_question += f"\n\n(Hint: {placeholder})"
-
         return formatted_question
 
     def _build_contextual_prompt(self) -> str:

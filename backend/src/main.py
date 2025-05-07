@@ -70,7 +70,6 @@ async def main() -> None:
         input_text = input("Enter your message (or 'exit' to quit): ")
         if input_text.lower() == "exit":
             break
-        print(f"User: {input_text}")
         # 5. Invoke the agent for a response
         async for response in agent.invoke(messages=input_text, thread=thread):
             print(f"Agent :{response.name}: {response}")
