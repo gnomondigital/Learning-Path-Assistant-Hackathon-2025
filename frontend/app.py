@@ -19,20 +19,27 @@ agent_handler = SemanticKernelAgentHandler()
 
 @cl.on_chat_start
 async def on_chat_start():
-    #cl.user_session.set("user_id", cl.user_session)
-    await cl.Message(content="Hi! I'm your assistant. Ask me anything.").send()
+    # cl.user_session.set("user_id", cl.user_session)
+    await cl.Message(content="Hi! I'm your GD assistant. Ask me anything.").send()
+
+
+@cl.on_chat_end
+async def on_chat_end():
+    await cl.Message(content="Goodbye!").send()
+    agent_handler.clean_up_thread()
+    # cl.user_session.clear()
 
 
 @cl.on_message
 async def on_message(message: cl.Message):
-    #user_id = cl.user_session.get("user_id")
+    # user_id = cl.user_session.get("user_id")
     try:
         thinking = await cl.Message("Thinking...", author="agent").send()
 
         response = await agent_handler.process_message(user_message=message.content)
 
-        if hasattr(response, 'content'):
-            response_text = str(response.content)  
+        if hasattr(response, "content"):
+            response_text = str(response.content)
         else:
             response_text = "Sorry, I couldn't understand the response format."
 
