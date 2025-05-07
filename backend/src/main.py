@@ -3,19 +3,22 @@ import os
 
 import semantic_kernel as sk
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
-from semantic_kernel.connectors.ai.function_choice_behavior import \
-    FunctionChoiceBehavior
+from semantic_kernel.connectors.ai.function_choice_behavior import (
+    FunctionChoiceBehavior,
+)
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.confluence.academy_agent import AcademyAgent
-from backend.src.agents.profile_builder.profile_builder import \
-    ProfileBuilderAgent
+from backend.src.agents.profile_builder.profile_builder import (
+    ProfileBuilderAgent,
+)
 from backend.src.agents.web_agent.web_agent import WebAgent
 from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
-from backend.src.prompts.profile_builder import \
-    PROMPT as PROFILE_BUILDER_PROMPT
+from backend.src.prompts.profile_builder import (
+    PROMPT as PROFILE_BUILDER_PROMPT,
+)
 from backend.src.prompts.search_prompt import PROMPT as SEARCH_PROMPT
 
 # ---- CONFIGURATION ----
@@ -52,26 +55,26 @@ class SemanticKernelAgentHandler:
             kernel=self.kernel,
             name="Host",
             instructions=GLOBAL_PROMPT.format(
-            PROFILE_BUILDER=PROFILE_BUILDER_PROMPT,
-            WEB_SEARCH_PROMPT=SEARCH_PROMPT,
-            CONFLUENCE_PROMPT=ACADEMY_PROMPT),
+                PROFILE_BUILDER=PROFILE_BUILDER_PROMPT,
+                WEB_SEARCH_PROMPT=SEARCH_PROMPT,
+                CONFLUENCE_PROMPT=ACADEMY_PROMPT,
+            ),
             arguments=KernelArguments(settings=settings),
         )
         self.thread = None
-        web_agent = WebAgent()
-        self.bing_agent = web_agent.init_web_agent()
+        #web_agent = WebAgent()
+        #self.bing_agent = web_agent.init_web_agent()
 
     async def start_thread(self):
         if not self.thread:
             self.thread = ChatHistoryAgentThread()
         return self.thread
-    
+
     async def clean_up_thread(self):
         if self.thread:
             await self.client.agents.delete_thread(self.thread.id)
         if self.agent:
             await self.client.agents.delete_agent(self.agent.id)
-
 
     async def process_message(
         self, user_message: str, thread: ChatHistoryAgentThread = None
@@ -79,6 +82,6 @@ class SemanticKernelAgentHandler:
         if not self.thread:
             await self.start_thread()
         async for response in self.agent.invoke(
-            messages=user_message, thread=self.thread
+            messages=user_message, thread=self.thread, streaming=True
         ):
             return response.content
