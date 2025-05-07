@@ -31,3 +31,6 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["*"]
+
+[tool.black]
+line-length = 79

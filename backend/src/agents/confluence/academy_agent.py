@@ -5,7 +5,6 @@ import requests
 from semantic_kernel.functions import kernel_function
 
 from backend.src.utils.config import Settings
-from backend.src.prompts.academy_instructions import PROMPT
 
 
 class AcademyAgent:
@@ -31,15 +30,13 @@ class AcademyAgent:
         }
 
     @kernel_function(
-        name="search_confluence", description="Search for content in Confluence"
+        name="search_confluence", description="Search for content in a specific subject, "
     )
-    def search_content(self, query: str, limit: str = "5") -> str:
+    def search_content(self, query: str) -> str:
         try:
-            prompt = PROMPT
             endpoint = f"{self.api_base}/content/search"
             params = {
                 "cql": f'text ~ "{query}"',
-                "limit": limit,
                 "expand": "body.view,space",
             }
 
@@ -110,14 +107,12 @@ class AcademyAgent:
     @kernel_function(
         name="get_recent_pages", description="Get recent pages from a Confluence space"
     )
-    def get_recent_pages(self, space_key: str, limit: str = "5") -> str:
+    def get_recent_pages(self, space_key: str) -> str:
         try:
-            limit_int = int(limit)
             endpoint = f"{self.api_base}/search"
             cql_query = f'space="{space_key}" AND type=page ORDER BY lastmodified DESC'
             params = {
                 "cql": cql_query,
-                "limit": limit_int,
                 "expand": "content.history,content._links",
             }
 

@@ -1,14 +1,8 @@
-from typing import Any, Dict, List, Optional
 
 from semantic_kernel.functions import kernel_function
 
-from backend.src.agents.confluence.academy_agent import AcademyAgent
 from backend.src.agents.profile_builder.profile_questions import \
     PROFILE_QUESTIONS
-from backend.src.agents.web_agent.web_agent import WebAgent
-
-external_knowledge_base = WebAgent()
-internal_knowledge_base = AcademyAgent()
 
 
 class ProfileBuilderAgent:
@@ -18,7 +12,6 @@ class ProfileBuilderAgent:
         self.current_index = 0
         self.last_response = None
         self.is_finished = False
-        self.learning_path = None
 
     @kernel_function(
         name="start_profile_flow",
@@ -32,7 +25,6 @@ class ProfileBuilderAgent:
         self.profile = {}
         self.last_response = None
         self.is_finished = False
-        self.learning_path = None
 
         intro = "👋 Hello! I'm your Learning Path Assistant. I'll help build a personalized learning journey for you.\n"
         intro += "Let's start by getting to know a bit about you and your goals.\n"
@@ -162,53 +154,6 @@ class ProfileBuilderAgent:
         return self.profile
 
     @kernel_function(
-        name="generate_learning_path",
-        description="Generate a personalized learning path based on the user's profile."
-    )
-    def generate_learning_path(self) -> str:
-        """
-        Generate and return a personalized learning path based on the collected profile.
-        """
-        if not self.is_finished:
-            remaining = len(self.questions) - self.current_index
-            return f"Your profile is not complete yet. There are {remaining} more questions to answer."
-
-        # Import the generation functions from the profile questions module
-
-        self.learning_path = generate_learning_path(self.profile)
-
-        # Format the learning path as a nice text output
-        path = self.learning_path
-        output = f"# 🚀 Personalized Learning Path for {path['name']}\n\n"
-
-        output += f"## Target Role: {path['target_role']}\n"
-        output += f"## Timeline: {path['timeline']}\n\n"
-
-        output += "### 📅 Daily Schedule Recommendation\n"
-        output += f"{path['daily_schedule']}\n\n"
-
-        output += "### 🎯 Recommended Skills to Focus On\n"
-        for skill in path['recommended_skills']:
-            output += f"- {skill}\n"
-        output += "\n"
-
-        output += "### 📚 Recommended Learning Resources\n"
-        for resource in path['learning_resources']:
-            output += f"- {resource}\n"
-        output += "\n"
-
-        output += "### 🏆 Key Milestones\n"
-        for milestone in path['milestones']:
-            output += f"- {milestone}\n"
-        output += "\n"
-
-        output += "### 📝 Next Steps\n"
-        for step in path['next_steps']:
-            output += f"- {step}\n"
-
-        return output
-
-    @kernel_function(
         name="reset_profile",
         description="Reset the profile and start over."
     )
@@ -220,26 +165,8 @@ class ProfileBuilderAgent:
         self.current_index = 0
         self.last_response = None
         self.is_finished = False
-        self.learning_path = None
 
         return "Profile has been reset. Let's start again:\n\n" + self._format_current_question()
-
-    @kernel_function(
-        name="export_learning_path",
-        description="Export the learning path as structured data."
-    )
-    def export_learning_path(self) -> dict:
-        """
-        Export the learning path as a structured dictionary.
-        """
-        if not self.learning_path:
-            if self.is_finished:
-                # Generate the learning path first
-                self.generate_learning_path()
-            else:
-                return {"error": "Profile is not complete yet. Please complete all questions first."}
-
-        return self.learning_path
 
     def _format_current_question(self) -> str:
         """
