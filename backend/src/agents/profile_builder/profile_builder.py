@@ -3,32 +3,55 @@ import os
 
 from semantic_kernel.functions import kernel_function
 
-from backend.src.agents.profile_builder.profile_questions import \
-    PROFILE_QUESTIONS
+from backend.src.agents.profile_builder.profile_questions import (
+    PROFILE_QUESTIONS,
+)
 
 PROFILE_FILE = "profiles.json"
 
 
 class ProfileBuilderAgent:
-    def __init__(self, questions=PROFILE_QUESTIONS):
+    def __init__(self, questions=PROFILE_QUESTIONS, user_id=None):
         self.questions = questions
         self.profiles = self._load_profiles()
         self.current_profile = {}
         self.current_index = 0
         self.last_response = None
         self.is_finished = False
+        self.user_id = user_id
 
     def _load_profiles(self):
         if os.path.exists(PROFILE_FILE):
             with open(PROFILE_FILE, "r") as f:
-                return json.load(f)
+                all_profiles = json.load(f)
+                if self.user_id:
+                    return [
+                        profile
+                        for profile in all_profiles
+                        if profile["user_id"] == self.user_id
+                    ]
+                else:
+                    return []
+
         return []
 
     def _save_profiles(self):
         with open(PROFILE_FILE, "w") as f:
+            if self.user_id:
+                self.profiles.append(
+                    {
+                        "user_id": self.user_id,
+                        **self.current_profile,
+                    }
+                )
+            else:
+                self.profiles.append(self.current_profile)
             json.dump(self.profiles, f, indent=2)
 
-    @kernel_function(name="start_profile_flow", description="Start the profile-building process.")
+    @kernel_function(
+        name="start_profile_flow",
+        description="Start the profile-building process.",
+    )
     def start_profile_flow(self) -> str:
         self.current_profile = {}
         self.current_index = 0
@@ -38,7 +61,9 @@ class ProfileBuilderAgent:
         intro = "👋 Hello! I'm your Learning Path Assistant.\nLet's start by getting to know you."
         return intro + "\n\n" + self._format_current_question()
 
-    @kernel_function(name="process_user_response", description="Process the user's answer.")
+    @kernel_function(
+        name="process_user_response", description="Process the user's answer."
+    )
     def process_user_response(self, user_input: str) -> str:
         if self.is_finished:
             return "✅ Profile already complete. Use 'generate_learning_path' to continue."
@@ -47,8 +72,9 @@ class ProfileBuilderAgent:
         key = current_question["key"]
 
         if current_question.get("input_type") == "multi_select":
-            self.current_profile[key] = [item.strip()
-                                         for item in user_input.split(',')]
+            self.current_profile[key] = [
+                item.strip() for item in user_input.split(",")
+            ]
         else:
             self.current_profile[key] = user_input.strip()
 
@@ -63,13 +89,17 @@ class ProfileBuilderAgent:
 
         return self._build_contextual_prompt()
 
-    @kernel_function(name="get_current_question", description="Get the current question.")
+    @kernel_function(
+        name="get_current_question", description="Get the current question."
+    )
     def get_current_question(self) -> str:
         if self.is_finished:
             return "All questions answered. Use 'generate_learning_path' to continue."
         return self._format_current_question()
 
-    @kernel_function(name="skip_question", description="Skip the current question.")
+    @kernel_function(
+        name="skip_question", description="Skip the current question."
+    )
     def skip_question(self) -> str:
         if self.is_finished:
             return "✅ Profile complete. Use 'generate_learning_path'."
@@ -87,7 +117,9 @@ class ProfileBuilderAgent:
 
         return f"Skipped. Next:\n\n{self._format_current_question()}"
 
-    @kernel_function(name="go_back", description="Go back to the previous question.")
+    @kernel_function(
+        name="go_back", description="Go back to the previous question."
+    )
     def go_back(self) -> str:
         if self.current_index > 0:
             self.current_index -= 1
@@ -95,7 +127,10 @@ class ProfileBuilderAgent:
             return f"Back to:\n\n{self._format_current_question()}"
         return "You're at the first question."
 
-    @kernel_function(name="get_profile_summary", description="Show summary of current profile.")
+    @kernel_function(
+        name="get_profile_summary",
+        description="Show summary of current profile.",
+    )
     def get_profile_summary(self) -> str:
         if not self.current_profile:
             return "No info yet."
@@ -112,23 +147,31 @@ class ProfileBuilderAgent:
                 break
         return summary
 
-    @kernel_function(name="get_all_profiles", description="Get all saved profiles.")
+    @kernel_function(
+        name="get_all_profiles", description="Get all saved profiles."
+    )
     def get_all_profiles(self) -> list:
         return self.profiles
 
-    @kernel_function(name="reset_profile", description="Reset current profile flow.")
+    @kernel_function(
+        name="reset_profile", description="Reset current profile flow."
+    )
     def reset_profile(self) -> str:
         self.current_profile = {}
         self.current_index = 0
         self.last_response = None
         self.is_finished = False
-        return "Profile reset. Let's start:\n\n" + self._format_current_question()
+        return (
+            "Profile reset. Let's start:\n\n" + self._format_current_question()
+        )
 
     def _format_current_question(self) -> str:
         q = self.questions[self.current_index]
         prompt = f"{q['question']}"
 
-        if q.get("input_type") in ["select", "multi_select"] and q.get("options"):
+        if q.get("input_type") in ["select", "multi_select"] and q.get(
+            "options"
+        ):
             prompt += "\n\nOptions:"
             for i, opt in enumerate(q["options"]):
                 prompt += f"\n{i + 1}. {opt}"
@@ -139,4 +182,6 @@ class ProfileBuilderAgent:
     def _build_contextual_prompt(self) -> str:
         confirmation = f"✅ Saved: '{self.last_response}'"
         progress = f"Question {self.current_index + 1}/{len(self.questions)}"
-        return f"{confirmation}\n{progress}\n\n{self._format_current_question()}"
+        return (
+            f"{confirmation}\n{progress}\n\n{self._format_current_question()}"
+        )

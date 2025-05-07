@@ -14,5 +14,21 @@
       "6"
     ],
     "additional_info": "no"
+  },
+  {
+    "name": "Hela",
+    "current_domain": "1",
+    "current_postion": "AI",
+    "target_role": "machine learning",
+    "tech_experience_level": "2",
+    "learning_obstacles": "1",
+    "time_limit": "1",
+    "preferred_learning_style": [
+      "1"
+    ],
+    "learning_resources": [
+      "6"
+    ],
+    "additional_info": "none"
   }
 ]
