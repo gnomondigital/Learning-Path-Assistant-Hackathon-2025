@@ -9,9 +9,15 @@ from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.confluence.academy_agent import AcademyAgent
+from backend.src.agents.profile_builder.profile_builder import \
+    ProfileBuilderAgent
 from backend.src.agents.web_agent.web_agent import WebAgent
-from backend.src.agents.profile_builder.profile_builder import ProfileBuilderAgent
 from backend.src.instructions.instructions_system import GLOBAL_PROMPT
+from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
+from backend.src.prompts.profile_builder import \
+    PROMPT as PROFILE_BUILDER_PROMPT
+from backend.src.prompts.search_prompt import PROMPT as SEARCH_PROMPT
+
 # ---- CONFIGURATION ----
 API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
 AZURE_AI_INFERENCE_API_KEY = os.getenv(
@@ -20,13 +26,13 @@ AZURE_AI_INFERENCE_API_KEY = os.getenv(
 AZURE_AI_INFERENCE_ENDPOINT = os.getenv(
     "AZURE_AI_INFERENCE_ENDPOINT"
 )
-service_id = "agent"
+SERVICE_ID = "agent"
 
 
 async def main() -> None:
     kernel = sk.Kernel()
     kernel.add_service(AzureChatCompletion(
-        service_id=service_id,
+        service_id=SERVICE_ID,
         api_key=AZURE_AI_INFERENCE_API_KEY,
         deployment_name=API_DEPLOYMENT_NAME,
         endpoint=AZURE_AI_INFERENCE_ENDPOINT,
@@ -43,15 +49,19 @@ async def main() -> None:
         ProfileBuilderAgent(),
         plugin_name="profile_builder_agent",
     )
+
     settings = kernel.get_prompt_execution_settings_from_service_id(
-        service_id=service_id
+        service_id=SERVICE_ID
     )
     settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
 
     agent = ChatCompletionAgent(
         kernel=kernel,
         name="Host",
-        instructions=GLOBAL_PROMPT,
+        instructions=GLOBAL_PROMPT.format(
+            PROFILE_BUILDER=PROFILE_BUILDER_PROMPT,
+            WEB_SEARCH_PROMPT=SEARCH_PROMPT,
+            CONFLUENCE_PROMPT=ACADEMY_PROMPT),
         arguments=KernelArguments(settings=settings),
     )
 
