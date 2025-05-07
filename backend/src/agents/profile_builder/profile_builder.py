@@ -11,22 +11,41 @@ PROFILE_FILE = "profiles.json"
 
 
 class ProfileBuilderAgent:
-    def __init__(self, questions=PROFILE_QUESTIONS):
+    def __init__(self, questions=PROFILE_QUESTIONS, user_id=None):
         self.questions = questions
         self.profiles = self._load_profiles()
         self.current_profile = {}
         self.current_index = 0
         self.last_response = None
         self.is_finished = False
+        self.user_id = user_id
 
     def _load_profiles(self):
         if os.path.exists(PROFILE_FILE):
             with open(PROFILE_FILE, "r") as f:
-                return json.load(f)
+                all_profiles = json.load(f)
+                if self.user_id:
+                    return [
+                        profile
+                        for profile in all_profiles
+                        if profile["user_id"] == self.user_id
+                    ]
+                else:
+                    return []
+
         return []
 
     def _save_profiles(self):
         with open(PROFILE_FILE, "w") as f:
+            if self.user_id:
+                self.profiles.append(
+                    {
+                        "user_id": self.user_id,
+                        **self.current_profile,
+                    }
+                )
+            else:
+                self.profiles.append(self.current_profile)
             json.dump(self.profiles, f, indent=2)
 
     @kernel_function(

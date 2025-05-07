@@ -29,7 +29,7 @@ service_id = "agent"
 
 
 class SemanticKernelAgentHandler:
-    def __init__(self):
+    def __init__(self, user_id=None):
         self.kernel = sk.Kernel()
 
         self.kernel.add_service(
@@ -40,11 +40,12 @@ class SemanticKernelAgentHandler:
                 endpoint=AZURE_AI_INFERENCE_ENDPOINT,
             )
         )
-
+        self.user_id = user_id
         self.kernel.add_plugin(AcademyAgent(), plugin_name="Academy_Agent")
         self.kernel.add_plugin(WebAgent(), plugin_name="Web_search_Agent")
         self.kernel.add_plugin(
-            ProfileBuilderAgent(), plugin_name="profile_builder_agent"
+            ProfileBuilderAgent(user_id=self.user_id),
+            plugin_name="profile_builder_agent",
         )
         settings = self.kernel.get_prompt_execution_settings_from_service_id(
             service_id=service_id
@@ -62,8 +63,8 @@ class SemanticKernelAgentHandler:
             arguments=KernelArguments(settings=settings),
         )
         self.thread = None
-        #web_agent = WebAgent()
-        #self.bing_agent = web_agent.init_web_agent()
+        # web_agent = WebAgent()
+        # self.bing_agent = web_agent.init_web_agent()
 
     async def start_thread(self):
         if not self.thread:
