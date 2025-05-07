@@ -21,12 +21,13 @@ class WebAgent:
         self.agent = None
         self.thread = None
 
-    async def init(self):
-        creds = DefaultAzureCredential()
-        self.client = AIProjectClient.from_connection_string(
-            credential=creds,
-            conn_str=Settings.PROJECT_CONNECTION_STRING,
-        )
+    async def init_web_agent(self):
+        if not self.agent:
+            creds = DefaultAzureCredential()
+            self.client = AIProjectClient.from_connection_string(
+                credential=creds,
+                conn_str=Settings.PROJECT_CONNECTION_STRING,
+            )
         bing_conn = await self.client.connections.get(
             connection_name=Settings.BING_CONNECTION_NAME)
         if not bing_conn:
@@ -48,7 +49,7 @@ class WebAgent:
 
     @kernel_function(name="search_web", description="Perform a Bing web search, search the web as an external tool for data sources . the query can be content, news, or sources for learning path")
     async def search_web(self, query: str) -> str:
-        await self.init()
+        await self.init_web_agent()
         if not self.agent or not self.thread:
             raise RuntimeError("Agent not initialized. Call init() first.")
 
