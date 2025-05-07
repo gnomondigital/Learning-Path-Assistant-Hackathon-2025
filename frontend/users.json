@@ -1,0 +1,10 @@
+[
+    {
+        "username": "admin",
+        "password_hash": "REDACTED_PASSWORD_HASH" 
+    },
+    {
+        "username": "user1",
+        "password_hash": "REDACTED_PASSWORD_HASH"  
+    }
+]
