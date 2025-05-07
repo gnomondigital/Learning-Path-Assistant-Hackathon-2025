@@ -51,8 +51,14 @@ def auth_callback(username: str, password: str):
     return None
 
 
+def generate_user_id(username: str, password_hash: str) -> str:
+    return f"{username}_{password_hash}"
+
+
 @cl.on_chat_start
 async def on_chat_start():
+    agent_handler = SemanticKernelAgentHandler(user_id=generate_user_id())
+
     elements = [
         cl.Text(
             content="Sorry, I couldn't find your profile.",
@@ -82,32 +88,36 @@ async def on_message(message: cl.Message):
             user_message=message.content
         )
 
-        show_profile = await agent_handler.process_message(
-            user_message="show_profile"
-        )
-
-        print(f"Response from agent: {response}")
-        print(f"Show profile response: {show_profile}")
-
         response_text = getattr(
             response,
             "content",
             "Sorry, I couldn't understand the response format.",
         )
 
-        if hasattr(show_profile, "content") and show_profile.content:
-            response_text_show_profile = str(show_profile.content)
+        with open("profiles.json", "r") as f:
+            profile_data = json.load(f)
+
+        if profile_data:
+            latest_profile = profile_data[-1]
+            profile_summary_content = f"""
+            Name: {latest_profile.get("name", "N/A")}
+            Current Domain: {latest_profile.get("current_domain", "N/A")}
+            Current Position: {latest_profile.get("current_postion", "N/A")}
+            Target Role: {latest_profile.get("target_role", "N/A")}
+            Tech Experience Level: {latest_profile.get("tech_experience_level", "N/A")}
+            Learning Obstacles: {latest_profile.get("learning_obstacles", "N/A")}
+            Time Limit: {latest_profile.get("time_limit", "N/A")}
+            Preferred Learning Style: {', '.join(latest_profile.get("preferred_learning_style", []))}
+            Learning Resources: {', '.join(latest_profile.get("learning_resources", []))}
+            Additional Info: {latest_profile.get("additional_info", "N/A")}
+            """
         else:
-            response_text_show_profile = "Sorry, I couldn't find your profile."
+            profile_summary_content = "No profiles found."
         await cl.ElementSidebar.set_elements(
-            [cl.Text(content=response_text_show_profile, name="profile_summary")]
+            [cl.Text(content=profile_summary_content, name="profile_summary")]
         )
         await cl.ElementSidebar.set_title("Your Profile Summary")
         print(f"Response from agent: {response_text}")
-        print(f"Show profile response: {response_text_show_profile}")
-        await cl.sleep(2)
-
-        await cl.ElementSidebar.set_elements([])
 
         # Step 7: Update main response
         thinking.content = response_text
