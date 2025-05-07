@@ -5,7 +5,6 @@ import requests
 from semantic_kernel.functions import kernel_function
 
 from backend.src.utils.config import Settings
-from backend.src.prompts.academy_instructions import PROMPT
 
 
 class AcademyAgent:
@@ -31,20 +30,19 @@ class AcademyAgent:
         }
 
     @kernel_function(
-        name="search_confluence", description="Search for content in Confluence"
+        name="search_confluence", description="Search for content in a specific subject, "
     )
-    def search_content(self, query: str, limit: str = "5") -> str:
+    def search_content(self, query: str) -> str:
         try:
-            prompt = PROMPT
             endpoint = f"{self.api_base}/content/search"
             params = {
                 "cql": f'text ~ "{query}"',
-                "limit": limit,
                 "expand": "body.view,space",
             }
 
             # Make API call
-            response = requests.get(endpoint, headers=self.headers, params=params)
+            response = requests.get(
+                endpoint, headers=self.headers, params=params)
 
             # Check for request success
             response.raise_for_status()
@@ -60,7 +58,8 @@ class AcademyAgent:
                 title = result.get("title", "Untitled")
                 space = result.get("space", {}).get("name", "Unknown Space")
                 url = f"{self.base_url}{result.get('_links', {}).get('webui', '')}"
-                content = result.get("body", {}).get("view", {}).get("value", "")
+                content = result.get("body", {}).get(
+                    "view", {}).get("value", "")
                 content = (
                     re.sub(r"<[^>]+>", "", content)[:200] + "..."
                     if len(content) > 200
@@ -76,7 +75,8 @@ class AcademyAgent:
             return f"Error searching Confluence: {str(e)}"
 
     @kernel_function(
-        name="get_page_by_id", description="Get page content from Confluence by ID"
+        name="get_page_by_id", 
+        description="Get page content from Confluence by ID"
     )
     def get_page_content(self, page_id: str) -> str:
         try:
@@ -85,7 +85,8 @@ class AcademyAgent:
             params = {"expand": "body.view"}
 
             # Make API call
-            response = requests.get(endpoint, headers=self.headers, params=params)
+            response = requests.get(
+                endpoint, headers=self.headers, params=params)
 
             # Check for request success
             response.raise_for_status()
@@ -106,18 +107,17 @@ class AcademyAgent:
     @kernel_function(
         name="get_recent_pages", description="Get recent pages from a Confluence space"
     )
-    def get_recent_pages(self, space_key: str, limit: str = "5") -> str:
+    def get_recent_pages(self, space_key: str) -> str:
         try:
-            limit_int = int(limit)
             endpoint = f"{self.api_base}/search"
             cql_query = f'space="{space_key}" AND type=page ORDER BY lastmodified DESC'
             params = {
                 "cql": cql_query,
-                "limit": limit_int,
                 "expand": "content.history,content._links",
             }
 
-            response = requests.get(endpoint, headers=self.headers, params=params)
+            response = requests.get(
+                endpoint, headers=self.headers, params=params)
             response.raise_for_status()
             results = response.json()
 
