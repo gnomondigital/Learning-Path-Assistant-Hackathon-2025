@@ -1,8 +1,8 @@
-
 from semantic_kernel.functions import kernel_function
 
-from backend.src.agents.profile_builder.profile_questions import \
-    PROFILE_QUESTIONS
+from backend.src.agents.profile_builder.profile_questions import (
+    PROFILE_QUESTIONS,
+)
 
 
 class ProfileBuilderAgent:
@@ -15,7 +15,7 @@ class ProfileBuilderAgent:
 
     @kernel_function(
         name="start_profile_flow",
-        description="Start the profile-building process with a welcoming message and first question."
+        description="Start the profile-building process with a welcoming message and first question.",
     )
     def start_profile_flow(self) -> str:
         """
@@ -27,12 +27,14 @@ class ProfileBuilderAgent:
         self.is_finished = False
 
         intro = "👋 Hello! I'm your Learning Path Assistant. I'll help build a personalized learning journey for you.\n"
-        intro += "Let's start by getting to know a bit about you and your goals.\n"
+        intro += (
+            "Let's start by getting to know a bit about you and your goals.\n"
+        )
         return intro + "\n" + self._format_current_question()
 
     @kernel_function(
         name="process_user_response",
-        description="Process the user's response to the current question and provide the next question."
+        description="Process the user's response to the current question and provide the next question.",
     )
     def process_user_response(self, user_input: str) -> str:
         """
@@ -47,8 +49,9 @@ class ProfileBuilderAgent:
         # Handle multi-select responses
         if current_question.get("input_type") == "multi_select":
             # Convert comma-separated values to a list
-            self.profile[current_question["key"]] = [item.strip()
-                                                     for item in user_input.split(',')]
+            self.profile[current_question["key"]] = [
+                item.strip() for item in user_input.split(",")
+            ]
         else:
             self.profile[current_question["key"]] = user_input.strip()
 
@@ -65,7 +68,7 @@ class ProfileBuilderAgent:
 
     @kernel_function(
         name="get_current_question",
-        description="Get the current question without advancing the flow."
+        description="Get the current question without advancing the flow.",
     )
     def get_current_question(self) -> str:
         """
@@ -78,7 +81,7 @@ class ProfileBuilderAgent:
 
     @kernel_function(
         name="skip_question",
-        description="Skip the current question and move to the next one."
+        description="Skip the current question and move to the next one.",
     )
     def skip_question(self) -> str:
         """
@@ -99,8 +102,7 @@ class ProfileBuilderAgent:
         return f"Question skipped. Let's move on:\n\n{self._format_current_question()}"
 
     @kernel_function(
-        name="go_back",
-        description="Go back to the previous question."
+        name="go_back", description="Go back to the previous question."
     )
     def go_back(self) -> str:
         """
@@ -115,7 +117,7 @@ class ProfileBuilderAgent:
 
     @kernel_function(
         name="get_profile_summary",
-        description="Get a summary of the user's profile information collected so far."
+        description="Get a summary of the user's profile information collected so far.",
     )
     def get_profile_summary(self) -> str:
         """
@@ -145,7 +147,7 @@ class ProfileBuilderAgent:
 
     @kernel_function(
         name="get_profile_data",
-        description="Return the raw profile data dictionary."
+        description="Return the raw profile data dictionary.",
     )
     def get_profile_data(self) -> dict:
         """
@@ -154,8 +156,7 @@ class ProfileBuilderAgent:
         return self.profile
 
     @kernel_function(
-        name="reset_profile",
-        description="Reset the profile and start over."
+        name="reset_profile", description="Reset the profile and start over."
     )
     def reset_profile(self) -> str:
         """
@@ -166,7 +167,10 @@ class ProfileBuilderAgent:
         self.last_response = None
         self.is_finished = False
 
-        return "Profile has been reset. Let's start again:\n\n" + self._format_current_question()
+        return (
+            "Profile has been reset. Let's start again:\n\n"
+            + self._format_current_question()
+        )
 
     def _format_current_question(self) -> str:
         """
@@ -186,7 +190,9 @@ class ProfileBuilderAgent:
                 formatted_question += f"\n{i+1}. {opt}"
 
         elif input_type == "multi_select" and options:
-            formatted_question += "\n\nSelect one or more (separate with commas):"
+            formatted_question += (
+                "\n\nSelect one or more (separate with commas):"
+            )
             for i, opt in enumerate(options):
                 formatted_question += f"\n{i+1}. {opt}"
 
@@ -207,3 +213,13 @@ class ProfileBuilderAgent:
         next_question = self._format_current_question()
 
         return f"{confirmation}\n{progress}\n\n{next_question}"
+
+    @kernel_function(
+        name="show_profile",
+        description="Show the current user's profile summary.",
+    )
+    def show_profile(self) -> str:
+        """
+        Returns a formatted summary of the user's profile information.
+        """
+        return self.profile
