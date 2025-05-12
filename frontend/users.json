@@ -1,7 +1,7 @@
 [
     {
         "username": "admin",
-        "password_hash": "REDACTED_PASSWORD_HASH" 
+        "password_hash": "REDACTED_PASSWORD_HASH"  
     },
     {
         "username": "user1",
