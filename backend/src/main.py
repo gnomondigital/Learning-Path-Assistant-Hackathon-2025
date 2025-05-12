@@ -31,7 +31,12 @@ service_id = "agent"
 class SemanticKernelAgentHandler:
     def __init__(self, user_id=None):
         self.kernel = sk.Kernel()
-
+        self.user_id = user_id
+        self.client = sk.connectors.ai.open_ai.AzureChatCompletion(
+            api_key=AZURE_AI_INFERENCE_API_KEY,
+            deployment_name=API_DEPLOYMENT_NAME,
+            endpoint=AZURE_AI_INFERENCE_ENDPOINT,
+        )
         self.kernel.add_service(
             AzureChatCompletion(
                 service_id=service_id,

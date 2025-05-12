@@ -18,66 +18,45 @@ config = {
     "PROMPT": "You are GD Academy's AI assistant. Answer questions or delegate to other agents.",
 }
 
-agent_handler = SemanticKernelAgentHandler()
 
-
-# Function to read user data from a file
 def load_users_from_file():
     with open("frontend/users.json", "r") as f:
         return json.load(f)
 
 
-# Function to hash the password and compare it to the stored hash
 def verify_password(stored_hash, password):
     return stored_hash == hashlib.md5(password.encode()).hexdigest()
 
 
 @cl.password_auth_callback
 def auth_callback(username: str, password: str):
-    # Load users from the file
     users = load_users_from_file()
-
-    # Iterate through the users and verify the username and password
     for user in users:
         if user["username"] == username and verify_password(
             user["password_hash"], password
         ):
+            user_id = f"{username}_{user['password_hash']}"
+            global agent_handler
+            agent_handler = SemanticKernelAgentHandler(user_id=user_id)
             return cl.User(
                 identifier=username,
                 metadata={"role": "user", "provider": "credentials"},
             )
-
-    # If no match is found, return None to indicate authentication failure
     return None
-
-
-def generate_user_id(username: str, password_hash: str) -> str:
-    return f"{username}_{password_hash}"
 
 
 @cl.on_chat_start
 async def on_chat_start():
-    agent_handler = SemanticKernelAgentHandler(user_id=generate_user_id())
-
     elements = [
         cl.Text(
             content="Sorry, I couldn't find your profile.",
             name="profile_summary",
         ),
     ]
-
-    # Setting elements will open the sidebar
     await cl.ElementSidebar.set_elements(elements)
     await cl.Message(
         content="Hi! I'm your GD assistant. Ask me anything."
     ).send()
-
-
-@cl.on_chat_end
-async def on_chat_end():
-    await cl.Message(content="Goodbye!").send()
-    agent_handler.clean_up_thread()
-    # cl.user_session.clear()
 
 
 @cl.on_message
@@ -98,31 +77,53 @@ async def on_message(message: cl.Message):
             profile_data = json.load(f)
 
         if profile_data:
-            latest_profile = profile_data[-1]
-            profile_summary_content = f"""
-            Name: {latest_profile.get("name", "N/A")}
-            Current Domain: {latest_profile.get("current_domain", "N/A")}
-            Current Position: {latest_profile.get("current_postion", "N/A")}
-            Target Role: {latest_profile.get("target_role", "N/A")}
-            Tech Experience Level: {latest_profile.get("tech_experience_level", "N/A")}
-            Learning Obstacles: {latest_profile.get("learning_obstacles", "N/A")}
-            Time Limit: {latest_profile.get("time_limit", "N/A")}
-            Preferred Learning Style: {', '.join(latest_profile.get("preferred_learning_style", []))}
-            Learning Resources: {', '.join(latest_profile.get("learning_resources", []))}
-            Additional Info: {latest_profile.get("additional_info", "N/A")}
-            """
+            latest_profile = next(
+                (
+                    profile
+                    for profile in profile_data
+                    if profile.get("user_id") == agent_handler.user_id
+                ),
+                None,
+            )
+
+            if not latest_profile:
+                latest_profile = profile_data[-1] if profile_data else None
+
+            if latest_profile:
+                profile_summary_content = f"""
+                Name: {latest_profile.get("name", "N/A")}
+                Current Domain: {latest_profile.get("current_domain", "N/A")}
+                Current Position: {latest_profile.get("current_postion", "N/A")}
+                Target Role: {latest_profile.get("target_role", "N/A")}
+                Tech Experience Level: {latest_profile.get("tech_experience_level", "N/A")}
+                Learning Obstacles: {latest_profile.get("learning_obstacles", "N/A")}
+                Time Limit: {latest_profile.get("time_limit", "N/A")}
+                Preferred Learning Style: {', '.join(latest_profile.get("preferred_learning_style", []))}
+                Learning Resources: {', '.join(latest_profile.get("learning_resources", []))}
+                Additional Info: {latest_profile.get("additional_info", "N/A")}
+                """
+            else:
+                profile_summary_content = (
+                    "No profile found for the current user."
+                )
         else:
-            profile_summary_content = "No profiles found."
+            profile_summary_content = "No profiles available."
+
         await cl.ElementSidebar.set_elements(
             [cl.Text(content=profile_summary_content, name="profile_summary")]
         )
         await cl.ElementSidebar.set_title("Your Profile Summary")
         print(f"Response from agent: {response_text}")
 
-        # Step 7: Update main response
         thinking.content = response_text
         await thinking.update()
 
     except Exception as e:
         await cl.Message(f"Error: {e}").send()
         print(f"Exception encountered: {e}")
+
+
+@cl.on_chat_end
+async def on_chat_end():
+    await cl.Message(content="Goodbye!").send()
+    await agent_handler.clean_up_thread()
