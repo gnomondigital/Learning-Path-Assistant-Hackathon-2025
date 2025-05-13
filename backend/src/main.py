@@ -18,7 +18,7 @@ from backend.src.agents.profile_builder.profile_builder_instructions import \
     PROMPT as PROFILE_BUILDER_PROMPT
 from backend.src.agents.bing_seach.search_prompt_instructions import \
     PROMPT as SEARCH_PROMPT
-from backend.src.agents.bing_seach.bing_search_agent import WebAgent
+from backend.src.agents.bing_seach.bing_search_agent import BingSearch
 from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 
 logging.basicConfig(level=logging.DEBUG)
@@ -49,7 +49,7 @@ class SemanticKernelAgentHandler:
             )
         )
         self.kernel.add_plugin(AcademyAgent(), plugin_name="Academy_Agent")
-        self.kernel.add_plugin(WebAgent(), plugin_name="Web_search_Agent")
+        self.kernel.add_plugin(BingSearch(), plugin_name="Web_search_Agent")
         self.kernel.add_plugin(
             ProfileBuilderAgent(user_id=self.user_id),
             plugin_name="profile_builder_agent",
