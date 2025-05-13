@@ -10,14 +10,16 @@ from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.confluence.academy_agent import AcademyAgent
-from backend.src.agents.profile_builder.profile_builder import \
+from backend.src.agents.confluence.academy_instructions import \
+    PROMPT as ACADEMY_PROMPT
+from backend.src.agents.profile_builder.profile_builder_agent import \
     ProfileBuilderAgent
-from backend.src.agents.web_agent.web_agent import WebAgent
-from backend.src.instructions.instructions_system import GLOBAL_PROMPT
-from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
-from backend.src.prompts.profile_builder import \
+from backend.src.agents.profile_builder.profile_builder_instructions import \
     PROMPT as PROFILE_BUILDER_PROMPT
-from backend.src.prompts.search_prompt import PROMPT as SEARCH_PROMPT
+from backend.src.agents.bing_seach.search_prompt_instructions import \
+    PROMPT as SEARCH_PROMPT
+from backend.src.agents.bing_seach.bing_search_agent import WebAgent
+from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
