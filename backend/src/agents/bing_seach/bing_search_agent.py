@@ -12,9 +12,9 @@ from backend.src.utils.config import Settings
 logger = logging.getLogger(__name__)
 
 
-class WebAgent:
+class BingSearch:
     def __init__(self) -> None:
-        logger.debug("Initializing WebAgent instance.")
+        logger.debug("Initializing BingSearch agent instance.")
         self.client = None
         self.toolset = AsyncToolSet()
         self.agent = None

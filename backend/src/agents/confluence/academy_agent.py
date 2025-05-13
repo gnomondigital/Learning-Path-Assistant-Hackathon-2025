@@ -47,13 +47,13 @@ class AcademyAgent:
                 endpoint, headers=self.headers, params=params
             )
             response.raise_for_status()
-            results = response.json()
+            search_response = response.json()
             logger.info("Search results retrieved successfully")
-            if results.get("size", 0) == 0:
+            if search_response.get("size", 0) == 0:
                 logger.warning("No results found for query: %s", query)
                 return "No results found in Confluence for your query."
-            formatted_results = []
-            for i, result in enumerate(results.get("results", []), 1):
+            formatted_search_results = []
+            for i, result in enumerate(search_response.get("results", []), 1):
                 title = result.get("title", "Untitled")
                 space = result.get("space", {}).get("name", "Unknown Space")
                 url = f"{self.base_url}{result.get('_links', {}).get('webui', '')}"
@@ -65,12 +65,12 @@ class AcademyAgent:
                     if len(content) > 200
                     else content
                 )
-                formatted_results.append(
+                formatted_search_results.append(
                     f"{i}. **{title}** (in {space})\n"
                     f"   URL: {url}\n"
                     f"   Snippet: {content}\n"
                 )
-            return "\n".join(formatted_results)
+            return "\n".join(formatted_search_results)
         except requests.exceptions.RequestException as e:
             logger.error("Error searching Confluence: %s", str(e))
             return f"Error searching Confluence: {str(e)}"
@@ -88,14 +88,16 @@ class AcademyAgent:
                 endpoint, headers=self.headers, params=params
             )
             response.raise_for_status()
-            result = response.json()
+            page_data = response.json()
             logger.info(
                 "Page content retrieved successfully for page_id: %s", page_id
             )
-            title = result.get("title", "Untitled")
-            content = result.get("body", {}).get("view", {}).get("value", "")
+            title = page_data.get("title", "Untitled")
+            content = (
+                page_data.get("body", {}).get("view", {}).get("value", "")
+            )
             content = re.sub(r"<[^>]+>", "", content)
-            url = f"{self.base_url}{result.get('_links', {}).get('webui', '')}"
+            url = f"{self.base_url}{page_data.get('_links', {}).get('webui', '')}"
             return f"# {title}\n\n{content}\n\nSource: {url}"
         except requests.exceptions.RequestException as e:
             logger.error("Error retrieving Confluence page: %s", str(e))
@@ -120,18 +122,18 @@ class AcademyAgent:
                 endpoint, headers=self.headers, params=params
             )
             response.raise_for_status()
-            results = response.json()
+            recent_pages_data = response.json()
             logger.info(
                 "Recent pages retrieved successfully for space_key: %s",
                 space_key,
             )
-            if not results.get("results"):
+            if not recent_pages_data.get("results"):
                 logger.warning(
                     "No pages found in Confluence space: %s", space_key
                 )
                 return f"No pages found in Confluence space '{space_key}'."
-            formatted_results = []
-            for i, result in enumerate(results["results"], 1):
+            formatted_recent_pages = []
+            for i, result in enumerate(recent_pages_data["results"], 1):
                 content = result.get("content", {})
                 title = content.get("title", "Untitled")
                 page_id = content.get("id", "")
@@ -142,12 +144,12 @@ class AcademyAgent:
                     .get("lastUpdated", {})
                     .get("when", "Unknown")[:10]
                 )
-                formatted_results.append(
+                formatted_recent_pages.append(
                     f"{i}. **{title}** (ID: {page_id})\n"
                     f"  URL: {url}\n"
                     f"  Last modified: {modified}\n"
                 )
-            return "\n".join(formatted_results)
+            return "\n".join(formatted_recent_pages)
         except requests.exceptions.RequestException as e:
             logger.error(
                 "Error retrieving recent Confluence pages: %s", str(e)
