@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class Utilities:
-    def __init__(self):
+    def __init__(self) -> None:
         self.shared_files_path = Path("data")
         self.shared_files_path.mkdir(exist_ok=True)
 
-    def clean_html_and_emojis(text):
+    def clean_html_and_emojis(self, text: str) -> str:
         text = html.unescape(text)
         text_no_html = re.sub(r"<[^>]+>", "", text)
         text_no_html = re.sub(r"\s+", " ", text_no_html).strip()
@@ -167,7 +167,6 @@ class Utilities:
             )
 
             try:
-                # Create a vector store
                 vector_store = (
                     await project_client.agents.create_vector_store_and_poll(
                         file_ids=file_ids, name=vector_store_name
