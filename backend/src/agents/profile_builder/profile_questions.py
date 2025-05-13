@@ -3,7 +3,7 @@ PROFILE_QUESTIONS = [
         "key": "name",
         "question": "What's your name?",
         "input_type": "text",
-        "placeholder": "Enter your name"
+        "placeholder": "Enter your name",
     },
     {
         "key": "current_domain",
@@ -19,21 +19,21 @@ PROFILE_QUESTIONS = [
             "Business/Management",
             "Manufacturing/Engineering",
             "Student",
-            "Other"
+            "Other",
         ],
-        "placeholder": "select your current domain"
+        "placeholder": "select your current domain",
     },
     {
         "key": "current_postion",
         "question": "What's your current specific role or position?",
         "input_type": "text",
-        "placeholder": "The name of your current position"
+        "placeholder": "The name of your current position",
     },
     {
         "key": "target_role",
         "question": "What specific job or role are you hoping to prepare for?",
         "input_type": "text",
-        "placeholder": "Yorr target job title, tool or computer language"
+        "placeholder": "Yorr target job title, tool or computer language",
     },
     {
         "key": "tech_experience_level",
@@ -44,9 +44,9 @@ PROFILE_QUESTIONS = [
             "Novice - I use computers regularly but don't know how they work",
             "Intermediate - I've done some coding or technical work",
             "Advanced - I work in tech but want to expand my skills",
-            "Expert - I'm proficient but looking to specialize or pivot"
+            "Expert - I'm proficient but looking to specialize or pivot",
         ],
-        "placeholder": "Select your experience level"
+        "placeholder": "Select your experience level",
     },
     {
         "key": "learning_obstacles",
@@ -60,9 +60,9 @@ PROFILE_QUESTIONS = [
             "Information overload/knowing where to start",
             "Access to good learning resources",
             "Lack of guidance or mentorship",
-            "Other"
+            "Other",
         ],
-        "placeholder": "Select your biggest challenge"
+        "placeholder": "Select your biggest challenge",
     },
     {
         "key": "time_limit",
@@ -74,9 +74,9 @@ PROFILE_QUESTIONS = [
             "6-12 months",
             "1-2 years",
             "More than 2 years",
-            "No specific deadline"
+            "No specific deadline",
         ],
-        "placeholder": "Select your timeframe"
+        "placeholder": "Select your timeframe",
     },
     {
         "key": "preferred_learning_style",
@@ -90,9 +90,9 @@ PROFILE_QUESTIONS = [
             "Structured courses with deadlines",
             "Learning with others/group work",
             "One-on-one mentoring",
-            "Trial and error/self-discovery"
+            "Trial and error/self-discovery",
         ],
-        "placeholder": "Select preferred learning styles"
+        "placeholder": "Select preferred learning styles",
     },
     {
         "key": "learning_resources",
@@ -104,14 +104,14 @@ PROFILE_QUESTIONS = [
             "College/university courses",
             "Technical books",
             "Professional mentorship",
-            "None - prefer free resources only"
+            "None - prefer free resources only",
         ],
-        "placeholder": "Select available resources"
+        "placeholder": "Select available resources",
     },
     {
         "key": "additional_info",
         "question": "Is there anything else you'd like to share about your learning preferences or goals?",
         "input_type": "text",
-        "placeholder": "Any additional information"
-    }
+        "placeholder": "Any additional information",
+    },
 ]
