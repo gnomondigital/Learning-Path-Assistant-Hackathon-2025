@@ -6,7 +6,7 @@ from azure.ai.projects.models import AsyncToolSet, BingGroundingTool
 from azure.identity.aio import DefaultAzureCredential
 from semantic_kernel.functions import kernel_function
 
-from backend.src.prompts.search_prompt import PROMPT
+from backend.src.agents.bing_seach.search_prompt_instructions import PROMPT
 from backend.src.utils.config import Settings
 
 logger = logging.getLogger(__name__)
