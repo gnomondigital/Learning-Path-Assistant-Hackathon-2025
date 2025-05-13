@@ -3,25 +3,21 @@ import os
 
 import semantic_kernel as sk
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
-from semantic_kernel.connectors.ai.function_choice_behavior import (
-    FunctionChoiceBehavior,
-)
+from semantic_kernel.connectors.ai.function_choice_behavior import \
+    FunctionChoiceBehavior
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.confluence.academy_agent import AcademyAgent
-from backend.src.agents.profile_builder.profile_builder import (
-    ProfileBuilderAgent,
-)
+from backend.src.agents.profile_builder.profile_builder import \
+    ProfileBuilderAgent
 from backend.src.agents.web_agent.web_agent import WebAgent
 from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
-from backend.src.prompts.profile_builder import (
-    PROMPT as PROFILE_BUILDER_PROMPT,
-)
+from backend.src.prompts.profile_builder import \
+    PROMPT as PROFILE_BUILDER_PROMPT
 from backend.src.prompts.search_prompt import PROMPT as SEARCH_PROMPT
 
-# ---- CONFIGURATION ----
 API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
 AZURE_AI_INFERENCE_API_KEY = os.getenv("AZURE_AI_INFERENCE_API_KEY")
 AZURE_AI_INFERENCE_ENDPOINT = os.getenv("AZURE_AI_INFERENCE_ENDPOINT")
@@ -68,8 +64,6 @@ class SemanticKernelAgentHandler:
             arguments=KernelArguments(settings=settings),
         )
         self.thread = None
-        # web_agent = WebAgent()
-        # self.bing_agent = web_agent.init_web_agent()
 
     async def start_thread(self):
         if not self.thread:

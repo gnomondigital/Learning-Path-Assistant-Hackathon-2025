@@ -43,7 +43,9 @@ class Utilities:
 
     def load_instructions(self, instructions_file: str) -> str:
         """Load instructions from a file."""
-        with open(instructions_file, "r", encoding="utf-8", errors="ignore") as file:
+        with open(
+            instructions_file, "r", encoding="utf-8", errors="ignore"
+        ) as file:
             return file.read()
 
     def log_msg_green(self, msg: str) -> None:
@@ -58,7 +60,12 @@ class Utilities:
         """Print a token in blue."""
         print(f"{tc.BLUE}{msg}{tc.RESET}", end="", flush=True)
 
-    async def get_file(self, project_client: AIProjectClient, file_id: str, attachment_name: str) -> None:
+    async def get_file(
+        self,
+        project_client: AIProjectClient,
+        file_id: str,
+        attachment_name: str,
+    ) -> None:
         """Retrieve the file and save it to the local disk."""
         self.log_msg_green(f"Getting file with ID: {file_id}")
 
@@ -71,43 +78,49 @@ class Utilities:
         folder_path.mkdir(parents=True, exist_ok=True)
         file_path = folder_path / file_name
 
-        # Save the file using a synchronous context manager
         with file_path.open("wb") as file:
-            async for chunk in await project_client.agents.get_file_content(file_id):
+            async for chunk in await project_client.agents.get_file_content(
+                file_id
+            ):
                 file.write(chunk)
 
         self.log_msg_green(f"File saved to {file_path}")
-        # Cleanup the remote file
         await project_client.agents.delete_file(file_id)
 
-    async def get_files(self, message: ThreadMessage, project_client: AIProjectClient) -> None:
+    async def get_files(
+        self, message: ThreadMessage, project_client: AIProjectClient
+    ) -> None:
         """Get the image files from the message and kickoff download."""
         if message.image_contents:
             for index, image in enumerate(message.image_contents, start=0):
                 attachment_name = (
-                    "unknown" if not message.file_path_annotations else message.file_path_annotations[
-                        index].text + ".png"
+                    "unknown"
+                    if not message.file_path_annotations
+                    else message.file_path_annotations[index].text + ".png"
                 )
-                await self.get_file(project_client, image.image_file.file_id, attachment_name)
+                await self.get_file(
+                    project_client, image.image_file.file_id, attachment_name
+                )
         elif message.attachments:
             for index, attachment in enumerate(message.attachments, start=0):
                 attachment_name = (
-                    "unknown" if not message.file_path_annotations else message.file_path_annotations[
-                        index].text
+                    "unknown"
+                    if not message.file_path_annotations
+                    else message.file_path_annotations[index].text
                 )
-                await self.get_file(project_client, attachment.file_id, attachment_name)
+                await self.get_file(
+                    project_client, attachment.file_id, attachment_name
+                )
 
     async def upload_file(
         self,
         project_client: AIProjectClient,
         file_path: Path,
-        purpose: str = "assistants"
+        purpose: str = "assistants",
     ) -> Dict[str, Any]:
-        """Upload a file to the project."""
         try:
             file_info = await project_client.agents.upload_file(
-                file_path=str(file_path),  # Convert Path to string
-                purpose=purpose
+                file_path=str(file_path), purpose=purpose
             )
             self.log_msg_purple(f"Uploaded file: {file_path}")
             return file_info
@@ -119,13 +132,11 @@ class Utilities:
         self,
         project_client: AIProjectClient,
         files: List[str],
-        vector_store_name: str
+        vector_store_name: str,
     ) -> Optional[VectorStore]:
-        """Create a vector store and upload files to it."""
         try:
             file_ids = []
 
-            # Upload the files
             for file in files:
                 file_path = Path(file)
                 if not file_path.exists():
@@ -136,10 +147,10 @@ class Utilities:
                     file_info = await self.upload_file(
                         project_client,
                         file_path=file_path,
-                        purpose="assistants"
+                        purpose="assistants",
                     )
-                    if file_info and 'id' in file_info:
-                        file_ids.append(file_info['id'])
+                    if file_info and "id" in file_info:
+                        file_ids.append(file_info["id"])
                         logger.info(f"Successfully uploaded: {file_path}")
                     else:
                         logger.warning(f"No file ID received for {file_path}")
@@ -152,18 +163,21 @@ class Utilities:
                 return None
 
             self.log_msg_purple(
-                f"Creating vector store with {len(file_ids)} files")
+                f"Creating vector store with {len(file_ids)} files"
+            )
 
             try:
                 # Create a vector store
-                vector_store = await project_client.agents.create_vector_store_and_poll(
-                    file_ids=file_ids,
-                    name=vector_store_name
+                vector_store = (
+                    await project_client.agents.create_vector_store_and_poll(
+                        file_ids=file_ids, name=vector_store_name
+                    )
                 )
 
                 if vector_store:
                     self.log_msg_purple(
-                        f"Vector store '{vector_store_name}' created successfully")
+                        f"Vector store '{vector_store_name}' created successfully"
+                    )
                     return vector_store
                 else:
                     logger.error("Vector store creation returned None")

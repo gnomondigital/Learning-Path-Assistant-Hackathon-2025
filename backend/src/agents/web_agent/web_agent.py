@@ -1,5 +1,3 @@
-# rag_agent_tools.py
-
 import logging
 import os
 
@@ -29,10 +27,12 @@ class WebAgent:
                 conn_str=Settings.PROJECT_CONNECTION_STRING,
             )
         bing_conn = await self.client.connections.get(
-            connection_name=Settings.BING_CONNECTION_NAME)
+            connection_name=Settings.BING_CONNECTION_NAME
+        )
         if not bing_conn:
             raise ValueError(
-                f"Bing connection '{Settings.BING_CONNECTION_NAME}' not found.")
+                f"Bing connection '{Settings.BING_CONNECTION_NAME}' not found."
+            )
 
         conn_id = bing_conn.id
         print(f"Using Bing connection ID: {conn_id}")
@@ -42,12 +42,15 @@ class WebAgent:
             name="Bing-Agent",
             instructions=PROMPT,
             tools=bing.definitions,
-            headers={"x-ms-enable-preview": "true"}
+            headers={"x-ms-enable-preview": "true"},
         )
         print(f"Created agent, ID: {self.agent.id}")
         self.thread = await self.client.agents.create_thread()
 
-    @kernel_function(name="search_web", description="Perform a Bing web search, search the web as an external tool for data sources . the query can be content, news, or sources for learning path")
+    @kernel_function(
+        name="search_web",
+        description="Perform a Bing web search, search the web as an external tool for data sources . the query can be content, news, or sources for learning path",
+    )
     async def search_web(self, query: str) -> str:
         await self.init_web_agent()
         if not self.agent or not self.thread:
@@ -56,7 +59,6 @@ class WebAgent:
         message = await self.client.agents.create_message(
             thread_id=self.thread.id, role="user", content=query
         )
-        # Create and process agent run in thread with tools
         run = await self.client.agents.create_and_process_run(
             thread_id=self.thread.id, agent_id=self.agent.id
         )
