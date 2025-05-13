@@ -7,6 +7,7 @@ from requests.auth import HTTPBasicAuth
 from utils.config import Settings
 from utils.utilities import Utilities
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('ingestions')
 
 

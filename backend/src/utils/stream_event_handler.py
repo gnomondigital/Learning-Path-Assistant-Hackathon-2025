@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from azure.ai.projects.aio import AIProjectClient
@@ -6,6 +7,8 @@ from azure.ai.projects.models import (AsyncAgentEventHandler,
                                       RunStep, RunStepDeltaChunk,
                                       ThreadMessage, ThreadRun)
 from utils.utilities import Utilities
+
+logger = logging.getLogger(__name__)
 
 
 class StreamEventHandler(AsyncAgentEventHandler[str]):
@@ -29,7 +32,7 @@ class StreamEventHandler(AsyncAgentEventHandler[str]):
 
     async def on_thread_run(self, run: ThreadRun) -> None:
         if run.status == "failed":
-            print(f"Run failed. Error: {run.last_error}")
+            logger.error(f"Run failed. Error: {run.last_error}")
 
     async def on_run_step(self, step: RunStep) -> None:
         pass
@@ -38,7 +41,7 @@ class StreamEventHandler(AsyncAgentEventHandler[str]):
         pass
 
     async def on_error(self, data: str) -> None:
-        print(f"An error occurred. Data: {data}")
+        logger.error(f"An error occurred. Data: {data}")
 
     async def on_done(self) -> None:
         pass
@@ -46,4 +49,4 @@ class StreamEventHandler(AsyncAgentEventHandler[str]):
     async def on_unhandled_event(
         self, event_type: str, event_data: Any
     ) -> None:
-        print(f"Unhandled Event Type: {event_type}")
+        logger.warning(f"Unhandled Event Type: {event_type}")

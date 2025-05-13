@@ -9,7 +9,11 @@ sys.path.append(
     os.path.join(os.path.dirname(__file__), "../", "backend/", "src/")
 )
 
+import logging
+
 from backend.src.main import SemanticKernelAgentHandler
+
+logging.basicConfig(level=logging.DEBUG)
 
 config = {
     "AZURE_API_KEY": os.getenv("AZURE_AI_INFERENCE_API_KEY"),
@@ -20,33 +24,42 @@ config = {
 
 
 def load_users_from_file():
+    logging.debug("Loading users from file")
     with open("frontend/users.json", "r") as f:
-        return json.load(f)
+        users = json.load(f)
+    logging.debug(f"Loaded users ")
+    return users
 
 
 def verify_password(stored_hash, password):
-    return stored_hash == hashlib.md5(password.encode()).hexdigest()
+    logging.debug(f"Verifying password for hash")
+    result = stored_hash == hashlib.md5(password.encode()).hexdigest()
+    return result
 
 
 @cl.password_auth_callback
 def auth_callback(username: str, password: str):
+    logging.debug(f"Authenticating user: {username}")
     users = load_users_from_file()
     for user in users:
         if user["username"] == username and verify_password(
             user["password_hash"], password
         ):
             user_id = f"{username}_{user['password_hash']}"
+            logging.info(f"User authenticated successfully: {username}")
             global agent_handler
             agent_handler = SemanticKernelAgentHandler(user_id=user_id)
             return cl.User(
                 identifier=username,
                 metadata={"role": "user", "provider": "credentials"},
             )
+    logging.warning(f"Authentication failed for user: {username}")
     return None
 
 
 @cl.on_chat_start
 async def on_chat_start():
+    logging.debug("Chat session started.")
     elements = [
         cl.Text(
             content="Sorry, I couldn't find your profile.",
@@ -61,11 +74,14 @@ async def on_chat_start():
 
 @cl.on_message
 async def on_message(message: cl.Message):
+    logging.debug(f"Received message: {message.content}")
     try:
         thinking = await cl.Message("Thinking...", author="agent").send()
+        logging.debug("Sent 'Thinking...' message to user.")
         response = await agent_handler.process_message(
             user_message=message.content
         )
+        logging.debug(f"Response from agent handler: {response}")
 
         response_text = getattr(
             response,
@@ -75,6 +91,7 @@ async def on_message(message: cl.Message):
 
         with open("profiles.json", "r") as f:
             profile_data = json.load(f)
+        logging.debug(f"Loaded profile data: {profile_data}")
 
         if profile_data:
             latest_profile = next(
@@ -102,28 +119,35 @@ async def on_message(message: cl.Message):
                 Learning Resources: {', '.join(latest_profile.get("learning_resources", []))}
                 Additional Info: {latest_profile.get("additional_info", "N/A")}
                 """
+                logging.debug(
+                    f"Profile summary content: {profile_summary_content}"
+                )
             else:
                 profile_summary_content = (
                     "No profile found for the current user."
                 )
+                logging.debug("No profile found for the current user.")
         else:
             profile_summary_content = "No profiles available."
+            logging.debug("No profiles available in the data.")
 
         await cl.ElementSidebar.set_elements(
             [cl.Text(content=profile_summary_content, name="profile_summary")]
         )
         await cl.ElementSidebar.set_title("Your Profile Summary")
-        print(f"Response from agent: {response_text}")
+        logging.info(f"Response from agent: {response_text}")
 
         thinking.content = response_text
         await thinking.update()
 
     except Exception as e:
+        logging.error(f"Exception encountered: {e}")
         await cl.Message(f"Error: {e}").send()
-        print(f"Exception encountered: {e}")
 
 
 @cl.on_chat_end
 async def on_chat_end():
+    logging.debug("Chat session ended.")
     await cl.Message(content="Goodbye!").send()
     await agent_handler.clean_up_thread()
+    logging.debug("Cleaned up agent handler thread.")

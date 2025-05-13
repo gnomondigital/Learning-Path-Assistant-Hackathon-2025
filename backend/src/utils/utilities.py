@@ -49,16 +49,16 @@ class Utilities:
             return file.read()
 
     def log_msg_green(self, msg: str) -> None:
-        """Print a message in green."""
-        print(f"{tc.GREEN}{msg}{tc.RESET}")
+        """Log a message in green."""
+        logger.info(f"{tc.GREEN}{msg}{tc.RESET}")
 
     def log_msg_purple(self, msg: str) -> None:
-        """Print a message in purple."""
-        print(f"{tc.PURPLE}{msg}{tc.RESET}")
+        """Log a message in purple."""
+        logger.info(f"{tc.PURPLE}{msg}{tc.RESET}")
 
     def log_token_blue(self, msg: str) -> None:
-        """Print a token in blue."""
-        print(f"{tc.BLUE}{msg}{tc.RESET}", end="", flush=True)
+        """Log a token in blue."""
+        logger.info(f"{tc.BLUE}{msg}{tc.RESET}")
 
     async def get_file(
         self,
