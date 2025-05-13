@@ -26,6 +26,8 @@ dependencies = [
     "python-dotenv>=1.1.0",
     "semantic-kernel>=1.29.0",
     "terminal-colors>=3.0.0",
+    "fastapi>=0.115.12",
+    "uvicorn>=0.34.2",
 ]
 
 [tool.setuptools.packages.find]
