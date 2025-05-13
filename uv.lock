@@ -229,6 +229,7 @@ dependencies = [
     { name = "azure-monitor-opentelemetry" },
     { name = "azure-search-documents" },
     { name = "chainlit" },
+    { name = "fastapi" },
     { name = "httpx" },
     { name = "opentelemetry-exporter-otlp" },
     { name = "pandas" },
@@ -239,6 +240,7 @@ dependencies = [
     { name = "requests" },
     { name = "semantic-kernel" },
     { name = "terminal-colors" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
@@ -254,6 +256,7 @@ requires-dist = [
     { name = "azure-monitor-opentelemetry", specifier = ">=1.6.8" },
     { name = "azure-search-documents", specifier = ">=11.5.2" },
     { name = "chainlit", specifier = ">=2.5.5" },
+    { name = "fastapi", specifier = ">=0.115.12" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "opentelemetry-exporter-otlp", specifier = ">=1.31.1" },
     { name = "pandas", specifier = ">=2.2.3" },
@@ -264,6 +267,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.3" },
     { name = "semantic-kernel", specifier = ">=1.29.0" },
     { name = "terminal-colors", specifier = ">=3.0.0" },
+    { name = "uvicorn", specifier = ">=0.34.2" },
 ]
 
 [[package]]
