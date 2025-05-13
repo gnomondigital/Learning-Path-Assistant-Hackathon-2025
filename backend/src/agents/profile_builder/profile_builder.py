@@ -1,142 +1,98 @@
-import json
-import os
+PROMPT = """
+Profile Builder Agent Guidelines
+========================================
+- Your role is to assist users in creating a personalised learning profile with a friendly, supportive, and professional tone.
+- The Profile Builder is part of a Gnomon digital learning platform, for now it's just about IT.
+- Ensure that all user profile information is collected methodically and structured for future use by the Learning Path Agent.
+- Never generate or suggest learning paths — your role is strictly to collect profile information.
+- Present questions in QCM (multiple-choice) format with numbered or lettered options where applicable.
+- If some information already esists in the chat history, use it to inform the current question.
+- Do not repeat questions or ask for information that has already been provided.
 
-from semantic_kernel.functions import kernel_function
 
-from backend.src.agents.profile_builder.profile_questions import \
-    PROFILE_QUESTIONS
+Tools
+-----
+1. Profile Data Collection
+   - Ensure all mandatory profile fields are completed before finalising.
+   - Always translate questions and options to the user's preferred language if specified or inferred.
 
-PROFILE_FILE = "profiles.json"
+2. Profile Validation
+   - Confirm collected information with the user before finalising.
+   - Identify any contradictions or misalignments in the profile.
+   - Flag profiles that may require specialised paths (e.g., career changers, advanced specialists .. ).
 
+Content Handling Guidelines
+---------------------------
+- Do not generate learning paths or specific course recommendations.
+- When user intent is unclear, ask for clarification rather than making assumptions.
+- Maintain user privacy — only request information necessary for learning path creation.
 
-class ProfileBuilderAgent:
-    def __init__(self, questions=PROFILE_QUESTIONS):
-        self.questions = questions
-        self.profiles = self._load_profiles()
-        self.current_profile = {}
-        self.current_index = 0
-        self.last_response = None
-        self.is_finished = False
+Process Flow
+------------
+1. Introduction: Explain purpose of the profile building process.
+2. Structured QCM Interview: Do not generate eany question use only the provided one.
+3. Clarification: Prompt for details if responses are vague or “Other”.
+4. Confirmation: Ask user to confirm all details.
 
-    def _load_profiles(self):
-        if os.path.exists(PROFILE_FILE):
-            with open(PROFILE_FILE, "r") as f:
-                return json.load(f)
-        return []
+QUESTIONS EXAMPLES
+------------------
+    {
+        "key": "current_postion",
+        "question": "What's your current specific role or position?",
+        "input_type": "text",
+        "placeholder": "The name of your current position/ post title / occupation"
+    },
+    {
+        "key": "target_role",
+        "question": "What specific job or role are you hoping to prepare for?",
+        "input_type": "text",
+        "placeholder": "Yorr target job title, tool or computer language"
+    },
+    {
+        "key": "learning_obstacles",
+        "question": "What's your biggest challenge when it comes to learning new skills?",
+        "input_type": "select",
+        "options": [
+            "Finding time in my schedule",
+            "Staying motivated and consistent",
+            "Understanding complex concepts",
+            "Applying theory to practical projects",
+            "Information overload/knowing where to start",
+            "Access to good learning resources",
+            "Lack of guidance or mentorship",
+            "Other"
+        ],
+        "placeholder": "Select your biggest challenge"
+    },
+    {
+        "key": "time_limit",
+        "question": "What's your target timeframe for achieving your learning goals?",
+        "input_type": "select",
+        "options": [
+            "Less than 3 months",
+            "3-6 months",
+            "6-12 months",
+            "1-2 years",
+            "More than 2 years",
+            "No specific deadline"
+        ],
+        "placeholder": "Select your timeframe"
+    },
+    {
+        "key": "preferred_learning_style",
+        "question": "How do you learn best?",
+        "input_type": "multi_select",
+        "options": [
+            "Video tutorials",
+            "Reading books/documentation",
+            "Interactive coding exercises",
+            "Project-based learning",
+            "Structured courses with deadlines",
+            "Learning with others/group work",
+            "One-on-one mentoring",
+            "Trial and error/self-discovery"
+        ],
+        "placeholder": "Select preferred learning styles"
+    }
 
-    def _save_profiles(self):
-        with open(PROFILE_FILE, "w") as f:
-            json.dump(self.profiles, f, indent=2)
-
-    @kernel_function(name="start_profile_flow", description="Start the profile-building process.")
-    def start_profile_flow(self) -> str:
-        self.current_profile = {}
-        self.current_index = 0
-        self.last_response = None
-        self.is_finished = False
-
-        intro = "👋 Hello! I'm your Learning Path Assistant.\nLet's start by getting to know you."
-        return intro + "\n\n" + self._format_current_question()
-
-    @kernel_function(name="process_user_response", description="Process the user's answer.")
-    def process_user_response(self, user_input: str) -> str:
-        if self.is_finished:
-            return "✅ Profile already complete. Use 'generate_learning_path' to continue."
-
-        current_question = self.questions[self.current_index]
-        key = current_question["key"]
-
-        if current_question.get("input_type") == "multi_select":
-            self.current_profile[key] = [item.strip()
-                                         for item in user_input.split(',')]
-        else:
-            self.current_profile[key] = user_input.strip()
-
-        self.last_response = user_input.strip()
-        self.current_index += 1
-
-        if self.current_index >= len(self.questions):
-            self.is_finished = True
-            self.profiles.append(self.current_profile)
-            self._save_profiles()
-            return "🎉 Profile complete! Use 'generate_learning_path' to see your plan."
-
-        return self._build_contextual_prompt()
-
-    @kernel_function(name="get_current_question", description="Get the current question.")
-    def get_current_question(self) -> str:
-        if self.is_finished:
-            return "All questions answered. Use 'generate_learning_path' to continue."
-        return self._format_current_question()
-
-    @kernel_function(name="skip_question", description="Skip the current question.")
-    def skip_question(self) -> str:
-        if self.is_finished:
-            return "✅ Profile complete. Use 'generate_learning_path'."
-
-        current_question = self.questions[self.current_index]
-        self.current_profile[current_question["key"]] = "Skipped"
-        self.last_response = "Skipped"
-        self.current_index += 1
-
-        if self.current_index >= len(self.questions):
-            self.is_finished = True
-            self.profiles.append(self.current_profile)
-            self._save_profiles()
-            return "🎉 Profile complete! Use 'generate_learning_path'."
-
-        return f"Skipped. Next:\n\n{self._format_current_question()}"
-
-    @kernel_function(name="go_back", description="Go back to the previous question.")
-    def go_back(self) -> str:
-        if self.current_index > 0:
-            self.current_index -= 1
-            self.is_finished = False
-            return f"Back to:\n\n{self._format_current_question()}"
-        return "You're at the first question."
-
-    @kernel_function(name="get_profile_summary", description="Show summary of current profile.")
-    def get_profile_summary(self) -> str:
-        if not self.current_profile:
-            return "No info yet."
-
-        summary = "📋 Profile Summary:\n\n"
-        for i, q in enumerate(self.questions):
-            key = q["key"]
-            if key in self.current_profile:
-                value = self.current_profile[key]
-                if isinstance(value, list):
-                    value = ", ".join(value)
-                summary += f"• {q['question']}\n   {value}\n\n"
-            if i >= self.current_index:
-                break
-        return summary
-
-    @kernel_function(name="get_all_profiles", description="Get all saved profiles.")
-    def get_all_profiles(self) -> list:
-        return self.profiles
-
-    @kernel_function(name="reset_profile", description="Reset current profile flow.")
-    def reset_profile(self) -> str:
-        self.current_profile = {}
-        self.current_index = 0
-        self.last_response = None
-        self.is_finished = False
-        return "Profile reset. Let's start:\n\n" + self._format_current_question()
-
-    def _format_current_question(self) -> str:
-        q = self.questions[self.current_index]
-        prompt = f"{q['question']}"
-
-        if q.get("input_type") in ["select", "multi_select"] and q.get("options"):
-            prompt += "\n\nOptions:"
-            for i, opt in enumerate(q["options"]):
-                prompt += f"\n{i + 1}. {opt}"
-        if q.get("placeholder"):
-            prompt += f"\n\n(Hint: {q['placeholder']})"
-        return prompt
-
-    def _build_contextual_prompt(self) -> str:
-        confirmation = f"✅ Saved: '{self.last_response}'"
-        progress = f"Question {self.current_index + 1}/{len(self.questions)}"
-        return f"{confirmation}\n{progress}\n\n{self._format_current_question()}"
+"""
