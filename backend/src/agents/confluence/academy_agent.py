@@ -47,13 +47,13 @@ class AcademyAgent:
                 endpoint, headers=self.headers, params=params
             )
             response.raise_for_status()
-            search_response = response.json()
+            search_confluence_pages = response.json()
             logger.info("Search results retrieved successfully")
-            if search_response.get("size", 0) == 0:
+            if search_confluence_pages.get("size", 0) == 0:
                 logger.warning("No results found for query: %s", query)
                 return "No results found in Confluence for your query."
-            formatted_search_results = []
-            for i, result in enumerate(search_response.get("results", []), 1):
+            formatted_confluence_pages = []
+            for i, result in enumerate(search_confluence_pages.get("results", []), 1):
                 title = result.get("title", "Untitled")
                 space = result.get("space", {}).get("name", "Unknown Space")
                 url = f"{self.base_url}{result.get('_links', {}).get('webui', '')}"
@@ -65,12 +65,12 @@ class AcademyAgent:
                     if len(content) > 200
                     else content
                 )
-                formatted_search_results.append(
+                formatted_confluence_pages.append(
                     f"{i}. **{title}** (in {space})\n"
                     f"   URL: {url}\n"
                     f"   Snippet: {content}\n"
                 )
-            return "\n".join(formatted_search_results)
+            return "\n".join(formatted_confluence_pages)
         except requests.exceptions.RequestException as e:
             logger.error("Error searching Confluence: %s", str(e))
             return f"Error searching Confluence: {str(e)}"
