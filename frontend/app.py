@@ -89,7 +89,7 @@ async def on_message(message: cl.Message) -> None:
             "Sorry, I couldn't understand the response format.",
         )
 
-        with open("profiles.json", "r") as f:
+        with open("frontend/profiles.json", "r") as f:
             profile_data = json.load(f)
         logging.debug(f"Loaded profile data: {profile_data}")
 
