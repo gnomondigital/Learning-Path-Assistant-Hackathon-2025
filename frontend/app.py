@@ -23,22 +23,22 @@ config = {
 }
 
 
-def load_users_from_file():
+def load_users_from_file() -> list:
     logging.debug("Loading users from file")
     with open("frontend/users.json", "r") as f:
         users = json.load(f)
-    logging.debug(f"Loaded users ")
+    logging.debug(f"Loaded users")
     return users
 
 
-def verify_password(stored_hash, password):
+def verify_password(stored_hash: str, password: str) -> bool:
     logging.debug(f"Verifying password for hash")
     result = stored_hash == hashlib.md5(password.encode()).hexdigest()
     return result
 
 
 @cl.password_auth_callback
-def auth_callback(username: str, password: str):
+def auth_callback(username: str, password: str) -> cl.User | None:
     logging.debug(f"Authenticating user: {username}")
     users = load_users_from_file()
     for user in users:
@@ -58,7 +58,7 @@ def auth_callback(username: str, password: str):
 
 
 @cl.on_chat_start
-async def on_chat_start():
+async def on_chat_start() -> None:
     logging.debug("Chat session started.")
     elements = [
         cl.Text(
@@ -73,7 +73,7 @@ async def on_chat_start():
 
 
 @cl.on_message
-async def on_message(message: cl.Message):
+async def on_message(message: cl.Message) -> None:
     logging.debug(f"Received message: {message.content}")
     try:
         thinking = await cl.Message("Thinking...", author="agent").send()
@@ -146,7 +146,7 @@ async def on_message(message: cl.Message):
 
 
 @cl.on_chat_end
-async def on_chat_end():
+async def on_chat_end() -> None:
     logging.debug("Chat session ended.")
     await cl.Message(content="Goodbye!").send()
     await agent_handler.clean_up_thread()

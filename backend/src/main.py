@@ -4,22 +4,19 @@ import os
 
 import semantic_kernel as sk
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
-from semantic_kernel.connectors.ai.function_choice_behavior import (
-    FunctionChoiceBehavior,
-)
+from semantic_kernel.connectors.ai.function_choice_behavior import \
+    FunctionChoiceBehavior
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.confluence.academy_agent import AcademyAgent
-from backend.src.agents.profile_builder.profile_builder import (
-    ProfileBuilderAgent,
-)
+from backend.src.agents.profile_builder.profile_builder import \
+    ProfileBuilderAgent
 from backend.src.agents.web_agent.web_agent import WebAgent
 from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 from backend.src.prompts.academy_instructions import PROMPT as ACADEMY_PROMPT
-from backend.src.prompts.profile_builder import (
-    PROMPT as PROFILE_BUILDER_PROMPT,
-)
+from backend.src.prompts.profile_builder import \
+    PROMPT as PROFILE_BUILDER_PROMPT
 from backend.src.prompts.search_prompt import PROMPT as SEARCH_PROMPT
 
 logging.basicConfig(level=logging.DEBUG)
@@ -32,7 +29,7 @@ service_id = "agent"
 
 
 class SemanticKernelAgentHandler:
-    def __init__(self, user_id=None):
+    def __init__(self, user_id: str = None) -> None:
         logger.debug("Initializing SemanticKernelAgentHandler")
         self.kernel = sk.Kernel()
         self.user_id = user_id
@@ -75,13 +72,13 @@ class SemanticKernelAgentHandler:
         self.thread = None
         logger.debug("SemanticKernelAgentHandler initialized successfully")
 
-    async def start_thread(self):
+    async def start_thread(self) -> ChatHistoryAgentThread:
         logger.debug("Starting new chat thread")
         if not self.thread:
             self.thread = ChatHistoryAgentThread()
         return self.thread
 
-    async def clean_up_thread(self):
+    async def clean_up_thread(self) -> None:
         logger.debug("Cleaning up chat thread and agent")
         if self.thread:
             await self.client.agents.delete_thread(self.thread.id)
