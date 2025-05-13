@@ -3,9 +3,8 @@ import os
 
 from semantic_kernel.functions import kernel_function
 
-from backend.src.agents.profile_builder.profile_questions import (
-    PROFILE_QUESTIONS,
-)
+from backend.src.agents.profile_builder.profile_questions import \
+    PROFILE_QUESTIONS
 
 PROFILE_FILE = "profiles.json"
 
