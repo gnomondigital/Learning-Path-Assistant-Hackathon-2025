@@ -25,7 +25,7 @@ config = {
 
 def load_users_from_file() -> list:
     logging.debug("Loading users from file")
-    with open("frontend/users.json", "r") as f:
+    with open("data/users.json", "r") as f:
         users = json.load(f)
     logging.debug(f"Loaded users")
     return users
@@ -89,7 +89,7 @@ async def on_message(message: cl.Message) -> None:
             "Sorry, I couldn't understand the response format.",
         )
 
-        with open("frontend/profiles.json", "r") as f:
+        with open("data/profiles.json", "r") as f:
             profile_data = json.load(f)
         logging.debug(f"Loaded profile data: {profile_data}")
 
