@@ -7,7 +7,7 @@ from semantic_kernel.functions import kernel_function
 from backend.src.agents.profile_builder.profile_questions import \
     PROFILE_QUESTIONS
 
-PROFILE_FILE = "frontend/profiles.json"
+PROFILE_FILE = "data/profiles.json"
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 

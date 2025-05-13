@@ -68,7 +68,7 @@ The **Semantic Kernel Agent** processes natural language queries and routes them
      ```
 
 2. Configure environment variables:
-     - Create a `.env` file in the root directory.
+     - Create a `.env` file in the root directory like the 'example.env' file.
      - Add the required variables (Confluence URL, API keys...).
 
 3. Start the backend server:
