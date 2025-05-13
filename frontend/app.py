@@ -1,3 +1,5 @@
+from backend.src.main import SemanticKernelAgentHandler
+import logging
 import hashlib
 import json
 import os
@@ -9,9 +11,6 @@ sys.path.append(
     os.path.join(os.path.dirname(__file__), "../", "backend/", "src/")
 )
 
-import logging
-
-from backend.src.main import SemanticKernelAgentHandler
 
 logging.basicConfig(level=logging.DEBUG)
 
