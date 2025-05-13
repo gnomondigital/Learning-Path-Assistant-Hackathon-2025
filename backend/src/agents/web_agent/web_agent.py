@@ -13,14 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 class WebAgent:
-    def __init__(self):
+    def __init__(self) -> None:
         logger.debug("Initializing WebAgent instance.")
         self.client = None
         self.toolset = AsyncToolSet()
         self.agent = None
         self.thread = None
 
-    async def init_web_agent(self):
+    async def init_web_agent(self) -> None:
         logger.info("Initializing web agent.")
         if not self.agent:
             creds = DefaultAzureCredential()
@@ -93,7 +93,7 @@ class WebAgent:
         logger.info("Search completed successfully.")
         return response
 
-    async def cleanup(self):
+    async def cleanup(self) -> None:
         logger.info("Cleaning up resources.")
         if self.thread:
             logger.debug(f"Deleting thread with ID: {self.thread.id}")

@@ -9,13 +9,13 @@ from backend.src.agents.profile_builder.profile_questions import \
 
 PROFILE_FILE = "profiles.json"
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.DEBUG
-)  # Set logging level to DEBUG for tracing
+logging.basicConfig(level=logging.DEBUG)
 
 
 class ProfileBuilderAgent:
-    def __init__(self, questions=PROFILE_QUESTIONS, user_id=None):
+    def __init__(
+        self, questions: list = PROFILE_QUESTIONS, user_id: str = None
+    ):
         self.user_id = user_id
         self.questions = questions
         self.profiles = self._load_profiles()
@@ -27,7 +27,7 @@ class ProfileBuilderAgent:
             f"Initialized ProfileBuilderAgent with user_id={self.user_id}"
         )
 
-    def _load_profiles(self):
+    def _load_profiles(self) -> list:
         logger.debug("Loading profiles...")
         if os.path.exists(PROFILE_FILE):
             with open(PROFILE_FILE, "r") as f:
@@ -45,7 +45,7 @@ class ProfileBuilderAgent:
                     return filtered_profiles
         return []
 
-    def _save_profiles(self):
+    def _save_profiles(self) -> None:
         logger.debug("Saving profiles...")
         with open(PROFILE_FILE, "r") as f:
             all_profiles = json.load(f)
