@@ -1,46 +1,49 @@
 import logging
 import os
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 
+import chainlit as cl
 import semantic_kernel as sk
 from pydantic import BaseModel
 from semantic_kernel import Kernel
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
-from semantic_kernel.connectors.ai.function_choice_behavior import \
-    FunctionChoiceBehavior
+from semantic_kernel.connectors.ai.function_choice_behavior import (
+    FunctionChoiceBehavior,
+)
 from semantic_kernel.connectors.ai.open_ai import (
-    AzureChatCompletion, OpenAIChatPromptExecutionSettings)
+    AzureChatCompletion,
+    OpenAIChatPromptExecutionSettings,
+)
 from semantic_kernel.connectors.mcp import MCPStdioPlugin
+from semantic_kernel.contents import FunctionCallContent, FunctionResultContent
+from semantic_kernel.contents.chat_message_content import ChatMessageContent
+from semantic_kernel.filters import FunctionInvocationContext
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.bing_seach.bing_search_agent import BingSearch
-from backend.src.agents.bing_seach.search_prompt_instructions import \
-    PROMPT as SEARCH_PROMPT
-from backend.src.agents.confluence.academy_instructions import \
-    PROMPT as ACADEMY_PROMPT
-from backend.src.agents.orchestrator_agent.instructions_system import \
-    GLOBAL_PROMPT
-from backend.src.agents.profile_builder.profile_builder_instructions import \
-    PROMPT as PROFILE_BUILDER_PROMPT
+from backend.src.agents.bing_seach.search_prompt_instructions import (
+    PROMPT as SEARCH_PROMPT,
+)
+from backend.src.agents.confluence.academy_instructions import (
+    PROMPT as ACADEMY_PROMPT,
+)
+from backend.src.agents.orchestrator_agent.instructions_system import (
+    GLOBAL_PROMPT,
+)
+from backend.src.agents.profile_builder.profile_builder_instructions import (
+    PROMPT as PROFILE_BUILDER_PROMPT,
+)
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 API_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME")
-AZURE_AI_INFERENCE_API_KEY = os.getenv(
-    "AZURE_AI_INFERENCE_API_KEY"
-)
-AZURE_AI_INFERENCE_ENDPOINT = os.getenv(
-    "AZURE_AI_INFERENCE_ENDPOINT"
-)
+AZURE_AI_INFERENCE_API_KEY = os.getenv("AZURE_AI_INFERENCE_API_KEY")
+AZURE_AI_INFERENCE_ENDPOINT = os.getenv("AZURE_AI_INFERENCE_ENDPOINT")
 CONFLUENCE_URL = os.getenv("CONFLUENCE_URL")
-CONFLUENCE_USERNAME = os.getenv(
-    "CONFLUENCE_USERNAME"
-)
-CONFLUENCE_API_KEY = os.getenv(
-    "CONFLUENCE_API_KEY"
-)
+CONFLUENCE_USERNAME = os.getenv("CONFLUENCE_USERNAME")
+CONFLUENCE_API_KEY = os.getenv("CONFLUENCE_API_KEY")
 
 SERVICE_ID = "agent"
 
@@ -55,15 +58,61 @@ class Profile(BaseModel):
 
 def _create_kernel_with_chat_completion(service_id: str) -> Kernel:
     kernel = Kernel()
-    kernel.add_service(AzureChatCompletion(
-        service_id=service_id, api_key=AZURE_AI_INFERENCE_API_KEY,
-        deployment_name=API_DEPLOYMENT_NAME,
-        endpoint=AZURE_AI_INFERENCE_ENDPOINT,))
+    kernel.add_service(
+        AzureChatCompletion(
+            service_id=service_id,
+            api_key=AZURE_AI_INFERENCE_API_KEY,
+            deployment_name=API_DEPLOYMENT_NAME,
+            endpoint=AZURE_AI_INFERENCE_ENDPOINT,
+        )
+    )
     return kernel
 
 
+intermediate_steps: list[ChatMessageContent] = []
+
+
+async def handle_intermediate_steps(message: ChatMessageContent) -> None:
+    intermediate_steps.append(message)
+
+
+async def logger_filter(
+    context: FunctionInvocationContext,
+    next: Callable[[FunctionInvocationContext], Awaitable[None]],
+) -> None:
+    logger.info(
+        f"FunctionInvoking - {context.function.plugin_name}.{context.function.name}"
+    )
+
+    await next(context)
+
+    logger.info(
+        f"FunctionInvoked - {context.function.plugin_name}.{context.function.name}"
+    )
+
+
+function_calls = []
+
+
+async def handle_streaming_intermediate_steps(
+    message: ChatMessageContent,
+) -> None:
+
+    for item in message.items or []:
+        if isinstance(item, FunctionResultContent):
+            print(f"Function Result:> {item.result} for function: {item.name}")
+        elif isinstance(item, FunctionCallContent):
+            print(
+                f"Function Call:> {item.name} with arguments: {item.arguments}"
+            )
+            function_calls.append(item)
+        else:
+            print(f"{item}")
+
+
 class ChatAgentHandler:
-    def __init__(self):
+    def __init__(self, user_id: str):
+        self.user_id = user_id
         self.agent = None
         self.thread: Optional[ChatHistoryAgentThread] = None
         self.initialized = False
@@ -90,16 +139,19 @@ class ChatAgentHandler:
                 "run",
                 "-i",
                 "--rm",
-                "-e", "CONFLUENCE_URL",
-                "-e", "CONFLUENCE_USERNAME",
-                "-e", "CONFLUENCE_API_TOKEN",
-                "ghcr.io/sooperset/mcp-atlassian:latest"
+                "-e",
+                "CONFLUENCE_URL",
+                "-e",
+                "CONFLUENCE_USERNAME",
+                "-e",
+                "CONFLUENCE_API_TOKEN",
+                "ghcr.io/sooperset/mcp-atlassian:latest",
             ],
             env={
                 "CONFLUENCE_URL": CONFLUENCE_URL,
                 "CONFLUENCE_USERNAME": CONFLUENCE_USERNAME,
                 "CONFLUENCE_API_TOKEN": CONFLUENCE_API_KEY,
-            }
+            },
         )
 
         await self.confluence_plugin.__aenter__()
@@ -107,28 +159,31 @@ class ChatAgentHandler:
         kernel = sk.Kernel()
         kernel.add_plugin(BingSearch(), plugin_name="Web_search_Agent")
         kernel.add_plugin(profile_builder, plugin_name="Profile_Builder_Agent")
-        kernel.add_plugin(self.confluence_plugin,
-                          plugin_name="Confluence_Agent")
+        kernel.add_plugin(
+            self.confluence_plugin, plugin_name="Confluence_Agent"
+        )
 
-        kernel.add_service(AzureChatCompletion(
-            service_id=SERVICE_ID,
-            api_key=AZURE_AI_INFERENCE_API_KEY,
-            deployment_name=API_DEPLOYMENT_NAME,
-            endpoint=AZURE_AI_INFERENCE_ENDPOINT,
-        ))
+        kernel.add_service(
+            AzureChatCompletion(
+                service_id=SERVICE_ID,
+                api_key=AZURE_AI_INFERENCE_API_KEY,
+                deployment_name=API_DEPLOYMENT_NAME,
+                endpoint=AZURE_AI_INFERENCE_ENDPOINT,
+            )
+        )
+        kernel.add_filter("function_invocation", logger_filter)
 
         settings = kernel.get_prompt_execution_settings_from_service_id(
             service_id=SERVICE_ID
         )
         settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
-
         self.agent = ChatCompletionAgent(
             kernel=kernel,
             name="Host",
             instructions=GLOBAL_PROMPT.format(
                 PROFILE_BUILDER=PROFILE_BUILDER_PROMPT,
                 WEB_SEARCH_PROMPT=SEARCH_PROMPT,
-                CONFLUENCE_PROMPT=ACADEMY_PROMPT
+                CONFLUENCE_PROMPT=ACADEMY_PROMPT,
             ),
             arguments=KernelArguments(settings=settings),
         )
@@ -136,12 +191,38 @@ class ChatAgentHandler:
 
     async def handle_message(self, message: str) -> str:
         await self.initialize()
-
+        function_calling = []
         output_text = ""
-        async for response in self.agent.invoke(messages=message, thread=self.thread):
+        async for response in self.agent.invoke(
+            messages=message,
+            thread=self.thread,
+            on_intermediate_message=handle_intermediate_steps,
+        ):
             output_text += str(response)
             self.thread = response.thread
-        return output_text
+        print(f"# {response.name}: {response.content}")
+        print("\nIntermediate Steps:")
+        for msg in intermediate_steps:
+            if any(
+                isinstance(item, FunctionResultContent) for item in msg.items
+            ):
+                for fr in msg.items:
+                    if isinstance(fr, FunctionResultContent):
+                        print(
+                            f"Function Result:> {fr.result} for function: {fr.name}"
+                        )
+            elif any(
+                isinstance(item, FunctionCallContent) for item in msg.items
+            ):
+                for fcc in msg.items:
+                    if isinstance(fcc, FunctionCallContent):
+                        print(
+                            f"Function Call:> {fcc.name} with arguments: {fcc.arguments}"
+                        )
+                        function_calling.append(fcc.name)
+            else:
+                print(f"{msg.role}: {msg.content}")
+        return output_text, function_calling
 
     async def cleanup(self):
         if self.thread:
