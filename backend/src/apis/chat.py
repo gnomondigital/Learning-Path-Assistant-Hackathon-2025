@@ -1,11 +1,12 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from backend.src.agents.orchestrator_agent.semantic_kernel_agent import \
-    ChatAgentHandler
+from backend.src.agents.orchestrator_agent.semantic_kernel_agent import (
+    ChatAgentHandler,
+)
 
 app = APIRouter()
-chat_handler = ChatAgentHandler()
+chat_handler = ChatAgentHandler(user_id=None)
 
 
 class Message(BaseModel):
@@ -14,8 +15,8 @@ class Message(BaseModel):
 
 @app.post("/chat")
 async def chat(message: Message):
-    response = await chat_handler.handle_message(message.text)
-    return {"response": response}
+    response, fcc = await chat_handler.handle_message(message.text)
+    return {"response": response, "fcc": fcc}
 
 
 @app.post("/cleanup")
