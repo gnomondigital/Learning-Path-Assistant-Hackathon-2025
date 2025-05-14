@@ -176,7 +176,6 @@ cython_debug/
 data/
 .chainlit
 !cypress/e2e/**/*/.chainlit/*
-chainlit.md
 
 .chainlit/
 .files/
