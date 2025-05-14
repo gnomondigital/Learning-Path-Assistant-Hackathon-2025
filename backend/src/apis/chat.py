@@ -16,3 +16,9 @@ class Message(BaseModel):
 async def chat(message: Message):
     response = await chat_handler.handle_message(message.text)
     return {"response": response}
+
+
+@app.post("/cleanup")
+async def cleanup():
+    await chat_handler.cleanup()
+    return {"message": "Cleanup completed"}
