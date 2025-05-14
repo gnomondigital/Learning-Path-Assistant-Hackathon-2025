@@ -178,3 +178,5 @@ data/
 !cypress/e2e/**/*/.chainlit/*
 chainlit.md
 
+.chainlit/
+.files/
