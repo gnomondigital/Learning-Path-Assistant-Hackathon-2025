@@ -18,9 +18,10 @@ from backend.src.agents.bing_seach.search_prompt_instructions import \
     PROMPT as SEARCH_PROMPT
 from backend.src.agents.confluence.academy_instructions import \
     PROMPT as ACADEMY_PROMPT
+from backend.src.agents.orchestrator_agent.instructions_system import \
+    GLOBAL_PROMPT
 from backend.src.agents.profile_builder.profile_builder_instructions import \
     PROMPT as PROFILE_BUILDER_PROMPT
-from backend.src.instructions.instructions_system import GLOBAL_PROMPT
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -50,7 +51,6 @@ class Profile(BaseModel):
     learning_obstacles: str
     time_limit: str
     preferred_learning_style: list[str]
-    additional_informations: dict[str, str]
 
 
 def _create_kernel_with_chat_completion(service_id: str) -> Kernel:
