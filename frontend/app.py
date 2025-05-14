@@ -1,45 +1,46 @@
-from backend.src.main import SemanticKernelAgentHandler
-import logging
 import hashlib
 import json
+import logging
 import os
 import sys
-from frontend.apis.routes import root
 
 import chainlit as cl
+
+from backend.src.agents.orchestrator_agent.semantic_kernel_agent import \
+    ChatAgentHandler
+from frontend.apis.routes import chat, cleanup, root
 
 sys.path.append(
     os.path.join(os.path.dirname(__file__), "../", "backend/", "src/")
 )
 
-test = root()
-logging.basicConfig(level=logging.DEBUG)
-
+logging.basicConfig(level=logging.INFO)
 config = {
     "AZURE_API_KEY": os.getenv("AZURE_AI_INFERENCE_API_KEY"),
     "DEPLOYMENT_NAME": os.getenv("API_DEPLOYMENT_NAME"),
     "AZURE_ENDPOINT": os.getenv("AZURE_AI_INFERENCE_ENDPOINT"),
     "PROMPT": "You are GD Academy's AI assistant. Answer questions or delegate to other agents.",
 }
+test = root()
 
 
 def load_users_from_file() -> list:
-    logging.debug("Loading users from file")
+    logging.info("Loading users from file")
     with open("data/users.json", "r") as f:
         users = json.load(f)
-    logging.debug(f"Loaded users")
+    logging.info("Loaded users")
     return users
 
 
 def verify_password(stored_hash: str, password: str) -> bool:
-    logging.debug(f"Verifying password for hash")
+    logging.info("Verifying password for hash")
     result = stored_hash == hashlib.md5(password.encode()).hexdigest()
     return result
 
 
 @cl.password_auth_callback
 def auth_callback(username: str, password: str) -> cl.User | None:
-    logging.debug(f"Authenticating user: {username}")
+    logging.info(f"Authenticating user: {username}")
     users = load_users_from_file()
     for user in users:
         if user["username"] == username and verify_password(
@@ -48,7 +49,7 @@ def auth_callback(username: str, password: str) -> cl.User | None:
             user_id = f"{username}_{user['password_hash']}"
             logging.info(f"User authenticated successfully: {username}")
             global agent_handler
-            agent_handler = SemanticKernelAgentHandler(user_id=user_id)
+            agent_handler = ChatAgentHandler(user_id=user_id)
             return cl.User(
                 identifier=username,
                 metadata={"role": "user", "provider": "credentials"},
@@ -57,9 +58,16 @@ def auth_callback(username: str, password: str) -> cl.User | None:
     return None
 
 
+@cl.step(type="tool", show_input=True)
+async def tool(msg: str):
+    await cl.sleep(2)
+
+    return cl.user_session.get("fcc")
+
+
 @cl.on_chat_start
 async def on_chat_start() -> None:
-    logging.debug("Chat session started.")
+    logging.info("Chat session started.")
     elements = [
         cl.Text(
             content="Sorry, I couldn't find your profile.",
@@ -70,28 +78,31 @@ async def on_chat_start() -> None:
     await cl.Message(
         content="Hi! I'm your GD assistant. Ask me anything."
     ).send()
+    cl.user_session.set("fcc", "")
 
 
 @cl.on_message
 async def on_message(message: cl.Message) -> None:
-    logging.debug(f"Received message: {message.content}")
+    logging.info(f"Received message: {message.content}")
     try:
+        tool_res = await tool(message.content)
+
         thinking = await cl.Message("Thinking...", author="agent").send()
-        logging.debug("Sent 'Thinking...' message to user.")
-        response = await agent_handler.process_message(
-            user_message=message.content
+        logging.info("Sent 'Thinking...' message to user.")
+        logging.info(f"Received message: {message.content}")
+        response = chat(message.content)
+        print(f"fcc : {response.get("fcc")}")
+        fcc = response.get("fcc")
+        cl.user_session.set("fcc", fcc)
+        logging.info(
+            f"Response from agent handler: {response.get('response')}"
         )
-        logging.debug(f"Response from agent handler: {response}")
-
-        response_text = getattr(
-            response,
-            "content",
-            "Sorry, I couldn't understand the response format.",
+        response_text = response.get(
+            "response", "Sorry, No response from agent handler."
         )
-
         with open("data/profiles.json", "r") as f:
             profile_data = json.load(f)
-        logging.debug(f"Loaded profile data: {profile_data}")
+        logging.info(f"Loaded profile data: {profile_data}")
 
         if profile_data:
             latest_profile = next(
@@ -119,17 +130,17 @@ async def on_message(message: cl.Message) -> None:
                 Learning Resources: {', '.join(latest_profile.get("learning_resources", []))}
                 Additional Info: {latest_profile.get("additional_info", "N/A")}
                 """
-                logging.debug(
+                logging.info(
                     f"Profile summary content: {profile_summary_content}"
                 )
             else:
                 profile_summary_content = (
                     "No profile found for the current user."
                 )
-                logging.debug("No profile found for the current user.")
+                logging.info("No profile found for the current user.")
         else:
             profile_summary_content = "No profiles available."
-            logging.debug("No profiles available in the data.")
+            logging.info("No profiles available in the data.")
 
         await cl.ElementSidebar.set_elements(
             [cl.Text(content=profile_summary_content, name="profile_summary")]
@@ -147,7 +158,7 @@ async def on_message(message: cl.Message) -> None:
 
 @cl.on_chat_end
 async def on_chat_end() -> None:
-    logging.debug("Chat session ended.")
+    logging.info("Chat session ended.")
     await cl.Message(content="Goodbye!").send()
-    await agent_handler.clean_up_thread()
-    logging.debug("Cleaned up agent handler thread.")
+    cleanup()
+    logging.info("Cleaned up agent handler thread.")
