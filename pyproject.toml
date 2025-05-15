@@ -28,6 +28,8 @@ dependencies = [
     "terminal-colors>=3.0.0",
     "fastapi>=0.115.12",
     "uvicorn>=0.34.2",
+    "pymongo>=4.12.1",
+    "orjson>=3.10.18",
 ]
 
 [tool.setuptools.packages.find]
