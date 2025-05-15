@@ -91,26 +91,29 @@ class ConfluenceIngestion:
         we extruct what to add , what to modify by comparing last_update
         """
         logger.info("Comparing page IDs and updated pages...")
-        old_page_ids = {page["id"] for page in old_pages}
+        old_page_ids = {page["page_id"] for page in old_pages}
 
         pages_to_add = []
         pages_to_update = []
         for page in new_pages:
-            if page["id"] not in old_page_ids:
+            old_page_update = next(
+                (p["last_update"]
+                 for p in old_pages if p["page_id"] == page["page_id"]),
+                None
+            )
+
+            if page["page_id"] not in old_page_ids:
                 pages_to_add.append(page)
-            elif page["last_update"] > next(
-                (p["last_update"] for p in old_pages if p["id"] == page["id"]),
-                None,
-            ):
+            elif old_page_update is not None and page["last_update"] > old_page_update:
                 pages_to_update.append(page)
             else:
                 logger.info(
-                    f"Page {page['id']} is already up to date in the metadata store."
+                    f"Page {page['page_id']} is already up to date in the metadata store."
                 )
 
         return pages_to_add, pages_to_update
 
-    async def add_pages_to_local(
+    def add_pages_to_local(
             self, pages_to_add: List[Dict]
     ) -> None:
         """
@@ -127,7 +130,7 @@ class ConfluenceIngestion:
         else:
             logger.error("Failed to add new pages to the metadata store.")
 
-    async def update_pages_in_local(
+    def update_pages_in_local(
             self, pages_to_update: List[Dict]
     ) -> None:
         """
@@ -158,8 +161,10 @@ class ConfluenceIngestion:
             new_pages=remote_pages,
         )
 
-        self.add_pages_to_local(pages_to_add=pages_to_add)
-        self.update_pages_in_local(pages_to_update=pages_to_update)
+        self.add_pages_to_local(
+            pages_to_add=pages_to_add) if pages_to_add else None
+        self.update_pages_in_local(
+            pages_to_update=pages_to_update) if pages_to_update else None
         logger.info(
             f"""Added {len(pages_to_add)} new pages and\
                 updated {len(pages_to_update)} pages in the metadata store.
@@ -169,5 +174,5 @@ class ConfluenceIngestion:
 
 if __name__ == "__main__":
     ingestion = ConfluenceIngestion()
-    output = asyncio(ingestion.update_content_process())
+    output = asyncio.run(ingestion.update_content_process())
     logger.info("Confluence data extraction and processing completed.")
