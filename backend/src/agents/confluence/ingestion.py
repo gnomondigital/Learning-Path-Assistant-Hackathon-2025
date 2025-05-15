@@ -25,7 +25,7 @@ class ConfluenceIngestion:
             password=Settings.CONFLUENCE_API_KEY,)
         self.confluence_content = metadata_store.confluence_content
 
-    def get_all_retrieved_pages(self) -> List[Dict]:
+    def fetch_all_pages_from_db(self) -> List[Dict]:
         """
         Get all pages that have been retrieved from Confluence.
         """
@@ -33,7 +33,7 @@ class ConfluenceIngestion:
         pages = self.confluence_content.find({})
         return pages
 
-    def fetch_all_pages(
+    def fetch_all_pages_from_source(
             self, space_key: str = "GDA", limit: int = 50) -> List[Dict]:
 
         pages = self.confluence.get_all_pages_from_space_as_generator(
@@ -73,22 +73,71 @@ class ConfluenceIngestion:
             structured_pages.append(page_obj.model_dump())
         return structured_pages
 
-    def compare_page_ids_and_updated_pages(
+    def comapre_remote_and_local_content(
             self, new_pages: List[str], old_pages: List[str]
     ) -> List[str]:
         """
-        Compare the page IDs from Confluence with the ones in the metadata store.
-        store the new one, update what's modified.
+        we have a list of the two pages and we want to compare them
+        we extruct what to add , what to modify by comparing last_update
         """
-        logger.info("Comparing page IDs...")
-        new_page_ids = list(set(retrieved_page_ids) - set(page_ids))
-        updated_page_ids = list(set(page_ids) - set(retrieved_page_ids))
-        logger.info(f"New page IDs: {new_page_ids}")
-        logger.info(f"Updated page IDs: {updated_page_ids}")
-        return new_page_ids, updated_page_ids
+        logger.info("Comparing page IDs and updated pages...")
+        old_page_ids = {page["id"] for page in old_pages}
+
+        pages_to_add = []
+        pages_to_update = []
+        for page in new_pages:
+            if page["id"] not in old_page_ids:
+                pages_to_add.append(page)
+            elif page["last_update"] > next(
+                (p["last_update"] for p in old_pages if p["id"] == page["id"]),
+                None,
+            ):
+                pages_to_update.append(page)
+            else:
+                logger.info(
+                    f"Page {page['id']} is already up to date in the metadata store."
+                )
+
+        return pages_to_add, pages_to_update
+
+    async def add_pages_to_local(
+            self, pages_to_add: List[Dict]
+    ) -> None:
+        """
+        Add new pages to the metadata store.
+        """
+        logger.info("Adding new pages to metadata store...")
+        result = self.confluence_content.insert_many(
+            pages_to_add
+        )
+        if result:
+            logger.info(
+                f"Added {len(pages_to_add)} new pages to the metadata store."
+            )
+        else:
+            logger.error("Failed to add new pages to the metadata store.")
+
+    async def update_content_process(self):
+        """
+        Update the content in the metadata store.
+        """
+        logger.info("Updating content in metadata store...")
+        local_pages = self.fetch_all_pages_from_db()
+        remote_pages = self.fetch_all_pages_from_source()
+        pages_to_add, pages_to_update = self.comapre_remote_and_local_content(
+            old_pages=local_pages,
+            new_pages=remote_pages,
+        )
+
+        sef.add_pages_to_local(pages_to_add=pages_to_add)
+
+        for page in pages_to_update:
+            self.confluence_content.update(page)
+
+        logger.info("Content update process completed.")
 
 
 if __name__ == "__main__":
     ingestion = ConfluenceIngestion()
-    output = ingestion.fetch_all_pages()
+    output = ingestion.fetch_all_pages_from_source()
     logger.info("Confluence data extraction and processing completed.")
