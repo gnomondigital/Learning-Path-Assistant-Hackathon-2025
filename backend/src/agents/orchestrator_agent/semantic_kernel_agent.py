@@ -1,5 +1,7 @@
+import asyncio
 import logging
 import os
+from collections.abc import AsyncIterable
 from typing import Optional
 
 import semantic_kernel as sk
@@ -11,12 +13,16 @@ from semantic_kernel.connectors.ai.function_choice_behavior import \
 from semantic_kernel.connectors.ai.open_ai import (
     AzureChatCompletion, OpenAIChatPromptExecutionSettings)
 from semantic_kernel.connectors.mcp import MCPStdioPlugin
+from semantic_kernel.contents import FunctionCallContent, FunctionResultContent
+from semantic_kernel.contents.chat_message_content import ChatMessageContent
+from semantic_kernel.contents.streaming_chat_message_content import \
+    StreamingChatMessageContent
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.bing_seach.bing_search_agent import BingSearch
 from backend.src.agents.bing_seach.search_prompt_instructions import \
     PROMPT as SEARCH_PROMPT
-from backend.src.agents.confluence.academy_instructions import \
+from backend.src.agents.confluence.prompt.academy_instructions import \
     PROMPT as ACADEMY_PROMPT
 from backend.src.agents.orchestrator_agent.instructions_system import \
     GLOBAL_PROMPT
@@ -53,6 +59,9 @@ class Profile(BaseModel):
     preferred_learning_style: list[str]
 
 
+logs_result = None
+
+
 def _create_kernel_with_chat_completion(service_id: str) -> Kernel:
     kernel = Kernel()
     kernel.add_service(AzureChatCompletion(
@@ -67,6 +76,10 @@ class ChatAgentHandler:
         self.agent = None
         self.thread: Optional[ChatHistoryAgentThread] = None
         self.initialized = False
+        self.intermediate_steps: list[ChatMessageContent] = []
+
+    async def handle_intermediate_steps(self, message: ChatMessageContent) -> None:
+        self.intermediate_steps.append(message.items)
 
     async def initialize(self):
         if self.initialized:
@@ -134,14 +147,14 @@ class ChatAgentHandler:
         )
         self.initialized = True
 
-    async def handle_message(self, message: str) -> str:
+    async def handle_message_streaming(self, message: str) -> AsyncIterable[StreamingChatMessageContent]:
         await self.initialize()
 
-        output_text = ""
-        async for response in self.agent.invoke(messages=message, thread=self.thread):
-            output_text += str(response)
-            self.thread = response.thread
-        return output_text
+        async for result in self.agent.invoke_stream(
+                messages=message, thread=self.thread,
+                on_intermediate_message=self.handle_intermediate_steps):
+            yield f"data: {result.content}\n\nlogs: {self.intermediate_steps}\n\n"
+            self.thread = result.thread
 
     async def cleanup(self):
         if self.thread:
