@@ -22,6 +22,8 @@ from semantic_kernel.functions.kernel_arguments import KernelArguments
 from backend.src.agents.bing_seach.bing_search_agent import BingSearch
 from backend.src.agents.bing_seach.search_prompt_instructions import \
     PROMPT as SEARCH_PROMPT
+from backend.src.agents.confluence.ingestion import (ConfluenceIngestion,
+                                                     SearchPlugin)
 from backend.src.agents.confluence.prompt.academy_instructions import \
     PROMPT as ACADEMY_PROMPT
 from backend.src.agents.orchestrator_agent.instructions_system import \
@@ -111,6 +113,7 @@ class ChatAgentHandler:
             arguments=KernelArguments(settings=settings),
         )
 
+        search_client = ConfluenceIngestion().update_content_process()
         self.confluence_plugin = MCPStdioPlugin(
             name="atlassian",
             description="Confluence plugin for Atlassian",
@@ -139,8 +142,10 @@ class ChatAgentHandler:
         kernel = sk.Kernel()
         kernel.add_plugin(BingSearch(), plugin_name="Web_search_Agent")
         kernel.add_plugin(profile_builder, plugin_name="Profile_Builder_Agent")
+        kernel.add_plugin(self.confluence_plugin,
+                          plugin_name="Confluence_Agent")
         kernel.add_plugin(
-            self.confluence_plugin, plugin_name="Confluence_Agent"
+            SearchPlugin(search_client=search_client), plugin_name="Confluence_Agent"
         )
 
         kernel.add_service(
