@@ -1,0 +1,35 @@
+services:
+  mongo:
+    image: mongo:${MONGO_VERSION}
+    pull_policy: if_not_present
+    restart: always
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - chat-docker
+  mongo-express:
+    image: mongo-express:${MONGOEXPRESS_VERSION}
+    container_name: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+      ME_CONFIG_BASICAUTH: false
+    networks:
+      - chat-docker
+
+volumes:
+  mongo_data:
+
+networks:
+  chat-docker:
+    external: false

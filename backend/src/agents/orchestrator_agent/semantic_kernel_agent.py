@@ -1,38 +1,33 @@
 import logging
 import os
+from collections.abc import AsyncIterable
 from typing import Awaitable, Callable, Optional
 
-import chainlit as cl
 import semantic_kernel as sk
 from pydantic import BaseModel
 from semantic_kernel import Kernel
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
-from semantic_kernel.connectors.ai.function_choice_behavior import (
-    FunctionChoiceBehavior,
-)
+from semantic_kernel.connectors.ai.function_choice_behavior import \
+    FunctionChoiceBehavior
 from semantic_kernel.connectors.ai.open_ai import (
-    AzureChatCompletion,
-    OpenAIChatPromptExecutionSettings,
-)
+    AzureChatCompletion, OpenAIChatPromptExecutionSettings)
 from semantic_kernel.connectors.mcp import MCPStdioPlugin
 from semantic_kernel.contents import FunctionCallContent, FunctionResultContent
 from semantic_kernel.contents.chat_message_content import ChatMessageContent
+from semantic_kernel.contents.streaming_chat_message_content import \
+    StreamingChatMessageContent
 from semantic_kernel.filters import FunctionInvocationContext
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.bing_seach.bing_search_agent import BingSearch
-from backend.src.agents.bing_seach.search_prompt_instructions import (
-    PROMPT as SEARCH_PROMPT,
-)
-from backend.src.agents.confluence.academy_instructions import (
-    PROMPT as ACADEMY_PROMPT,
-)
-from backend.src.agents.orchestrator_agent.instructions_system import (
-    GLOBAL_PROMPT,
-)
-from backend.src.agents.profile_builder.profile_builder_instructions import (
-    PROMPT as PROFILE_BUILDER_PROMPT,
-)
+from backend.src.agents.bing_seach.search_prompt_instructions import \
+    PROMPT as SEARCH_PROMPT
+from backend.src.agents.confluence.prompt.academy_instructions import \
+    PROMPT as ACADEMY_PROMPT
+from backend.src.agents.orchestrator_agent.instructions_system import \
+    GLOBAL_PROMPT
+from backend.src.agents.profile_builder.profile_builder_instructions import \
+    PROMPT as PROFILE_BUILDER_PROMPT
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -91,25 +86,6 @@ async def logger_filter(
     )
 
 
-function_calls = []
-
-
-async def handle_streaming_intermediate_steps(
-    message: ChatMessageContent,
-) -> None:
-
-    for item in message.items or []:
-        if isinstance(item, FunctionResultContent):
-            print(f"Function Result:> {item.result} for function: {item.name}")
-        elif isinstance(item, FunctionCallContent):
-            print(
-                f"Function Call:> {item.name} with arguments: {item.arguments}"
-            )
-            function_calls.append(item)
-        else:
-            print(f"{item}")
-
-
 class ChatAgentHandler:
     def __init__(self, user_id: str):
         self.user_id = user_id
@@ -117,6 +93,12 @@ class ChatAgentHandler:
         self.thread: Optional[ChatHistoryAgentThread] = None
         self.initialized = False
         self.confluence_plugin = None
+        self.intermediate_streaming_steps: list[ChatMessageContent] = []
+
+    async def handle_streaming_intermediate_steps(
+        self, message: ChatMessageContent
+    ) -> None:
+        self.intermediate_streaming_steps.append(message.items)
 
     async def initialize(self):
         if self.initialized:
@@ -225,6 +207,19 @@ class ChatAgentHandler:
             else:
                 print(f"{msg.role}: {msg.content}")
         return output_text, function_calling
+
+    async def handle_message_streaming(
+        self, message: str
+    ) -> AsyncIterable[StreamingChatMessageContent]:
+        await self.initialize()
+
+        async for result in self.agent.invoke_stream(
+            messages=message,
+            thread=self.thread,
+            on_intermediate_message=self.handle_streaming_intermediate_steps,
+        ):
+            yield f"data: {result.content}\n\nlogs: {self.intermediate_streaming_steps}\n\n"
+            self.thread = result.thread
 
     async def cleanup(self):
         if self.thread:
