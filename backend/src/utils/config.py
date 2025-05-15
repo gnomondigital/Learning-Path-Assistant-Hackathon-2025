@@ -39,6 +39,12 @@ class Settings():
     AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED = os.getenv(
         "AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED"
     )
+    AZURE_SEARCH_SERVICE_ENDPOINT = os.getenv(
+        "AZURE_SEARCH_SERVICE_ENDPOINT"
+    )
+    AZURE_SEARCH_API_KEY = os.getenv(
+        "AZURE_SEARCH_API_KEY", "azure-search-api-key"
+    )
 
     METADATA_STORE_CONFIG: MetadataStoreConfig = os.getenv(
         "METADATA_STORE_CONFIG", "")

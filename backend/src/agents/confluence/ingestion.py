@@ -1,8 +1,16 @@
+import asyncio
 import logging
+import os
 from datetime import datetime
 from typing import Dict, List
 
 from atlassian import Confluence
+from azure.core.credentials import AzureKeyCredential
+from azure.search.documents import SearchClient
+from azure.search.documents.indexes import SearchIndexClient
+from azure.search.documents.indexes.models import (SearchableField,
+                                                   SearchFieldDataType,
+                                                   SearchIndex, SimpleField)
 from requests.auth import HTTPBasicAuth
 
 from backend.src.agents.confluence.model.base import ConfluencePageModel
@@ -24,6 +32,8 @@ class ConfluenceIngestion:
             username=Settings.CONFLUENCE_USERNAME,
             password=Settings.CONFLUENCE_API_KEY,)
         self.confluence_content = metadata_store.confluence_content
+        self.AZURE_SEARCH_SERVICE_ENDPOINT = Settings.AZURE_SEARCH_SERVICE_ENDPOINT
+        self.AZURE_SEARCH_API_KEY = Settings.AZURE_SEARCH_API_KEY
 
     def fetch_all_pages_from_db(self) -> List[Dict]:
         """
@@ -117,6 +127,25 @@ class ConfluenceIngestion:
         else:
             logger.error("Failed to add new pages to the metadata store.")
 
+    async def update_pages_in_local(
+            self, pages_to_update: List[Dict]
+    ) -> None:
+        """
+        Update existing pages in the metadata store.
+        """
+        logger.info("Updating existing pages in metadata store...")
+        for page in pages_to_update:
+            result = self.confluence_content.update_one(
+                {"page_id": page["page_id"]},
+                {"$set": page}
+            )
+            if result:
+                logger.info(
+                    f"Updated page {page['id']} in the metadata store.")
+            else:
+                logger.error(
+                    f"Failed to update page {page['id']} in the metadata store.")
+
     async def update_content_process(self):
         """
         Update the content in the metadata store.
@@ -129,15 +158,16 @@ class ConfluenceIngestion:
             new_pages=remote_pages,
         )
 
-        sef.add_pages_to_local(pages_to_add=pages_to_add)
-
-        for page in pages_to_update:
-            self.confluence_content.update(page)
-
-        logger.info("Content update process completed.")
+        self.add_pages_to_local(pages_to_add=pages_to_add)
+        self.update_pages_in_local(pages_to_update=pages_to_update)
+        logger.info(
+            f"""Added {len(pages_to_add)} new pages and\
+                updated {len(pages_to_update)} pages in the metadata store.
+            """
+        )
 
 
 if __name__ == "__main__":
     ingestion = ConfluenceIngestion()
-    output = ingestion.fetch_all_pages_from_source()
+    output = asyncio(ingestion.update_content_process())
     logger.info("Confluence data extraction and processing completed.")
