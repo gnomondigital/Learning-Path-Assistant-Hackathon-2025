@@ -116,6 +116,7 @@ class ChatAgentHandler:
         self.agent = None
         self.thread: Optional[ChatHistoryAgentThread] = None
         self.initialized = False
+        self.confluence_plugin = None
 
     async def initialize(self):
         if self.initialized:
@@ -191,6 +192,7 @@ class ChatAgentHandler:
 
     async def handle_message(self, message: str) -> str:
         await self.initialize()
+        intermediate_steps.clear()
         function_calling = []
         output_text = ""
         async for response in self.agent.invoke(
@@ -227,6 +229,14 @@ class ChatAgentHandler:
     async def cleanup(self):
         if self.thread:
             await self.thread.delete()
+
         if self.confluence_plugin:
-            await self.confluence_plugin.__aexit__(None, None, None)
+            try:
+                logging.info("Cleaning up Confluence plugin.")
+                await self.confluence_plugin.__aexit__(None, None, None)
+
+                logging.info("Confluence plugin cleaned up successfully.")
+            except RuntimeError as e:
+                logging.error(f"Error during Confluence plugin cleanup: {e}")
+
         self.initialized = False
