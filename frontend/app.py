@@ -6,8 +6,9 @@ import sys
 
 import chainlit as cl
 
-from backend.src.agents.orchestrator_agent.semantic_kernel_agent import \
-    ChatAgentHandler
+from backend.src.agents.orchestrator_agent.semantic_kernel_agent import (
+    ChatAgentHandler,
+)
 from frontend.apis.routes import chat, cleanup, root
 
 sys.path.append(
@@ -85,8 +86,6 @@ async def on_chat_start() -> None:
 async def on_message(message: cl.Message) -> None:
     logging.info(f"Received message: {message.content}")
     try:
-        tool_res = await tool(message.content)
-
         thinking = await cl.Message("Thinking...", author="agent").send()
         logging.info("Sent 'Thinking...' message to user.")
         logging.info(f"Received message: {message.content}")
@@ -94,6 +93,8 @@ async def on_message(message: cl.Message) -> None:
         print(f"fcc : {response.get("fcc")}")
         fcc = response.get("fcc")
         cl.user_session.set("fcc", fcc)
+        tool_res = await tool(message.content)
+
         logging.info(
             f"Response from agent handler: {response.get('response')}"
         )
