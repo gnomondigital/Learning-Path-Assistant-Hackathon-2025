@@ -204,7 +204,8 @@ class ChatAgentHandler:
                 print(f"{msg.role}: {msg.content}")
         return output_text, function_calling
 
-    async def handle_message_streaming(self, message: str) -> AsyncIterable[StreamingChatMessageContent]:
+    async def handle_message_streaming(
+            self, message: str) -> AsyncIterable[StreamingChatMessageContent]:
         await self.initialize()
 
         async for result in self.agent.invoke_stream(
