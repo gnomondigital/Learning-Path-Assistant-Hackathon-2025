@@ -21,11 +21,9 @@ from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.bing_seach.bing_search_agent import BingSearch
 from backend.src.agents.bing_seach.search_prompt_instructions import \
-    PROMPT as SEARCH_PROMPT
-from backend.src.agents.confluence.ingestion import (ConfluenceIngestion,
+    PROMPT as WEB_SEARCH_PROMPT
+from backend.src.agents.confluence.academy_rag import (ConfluenceIngestion,
                                                      SearchPlugin)
-from backend.src.agents.confluence.prompt.academy_instructions import \
-    PROMPT as ACADEMY_PROMPT
 from backend.src.agents.orchestrator_agent.instructions_system import \
     GLOBAL_PROMPT
 from backend.src.agents.profile_builder.profile_builder_instructions import \
@@ -97,7 +95,7 @@ class ChatAgentHandler:
         self.intermediate_streaming_steps: list[ChatMessageContent] = []
 
     async def handle_streaming_intermediate_steps(self, message: ChatMessageContent) -> None:
-        self.intermediate_streaming_steps.append(message.items)
+        self.intermediate_streaming_steps.append(message)
 
     async def initialize(self):
         if self.initialized:
@@ -145,7 +143,8 @@ class ChatAgentHandler:
         kernel.add_plugin(self.confluence_plugin,
                           plugin_name="Confluence_Agent")
         kernel.add_plugin(
-            SearchPlugin(search_client=search_client), plugin_name="Confluence_Agent"
+            SearchPlugin(search_client=search_client),
+            plugin_name="azure_ai_search"
         )
 
         kernel.add_service(
@@ -166,9 +165,7 @@ class ChatAgentHandler:
             kernel=kernel,
             name="Host",
             instructions=GLOBAL_PROMPT.format(
-                PROFILE_BUILDER=PROFILE_BUILDER_PROMPT,
-                WEB_SEARCH_PROMPT=SEARCH_PROMPT,
-                CONFLUENCE_PROMPT=ACADEMY_PROMPT,
+                WEB_SEARCH_PROMPT=WEB_SEARCH_PROMPT
             ),
             arguments=KernelArguments(settings=settings),
         )
