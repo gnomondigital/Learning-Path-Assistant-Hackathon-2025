@@ -10,16 +10,17 @@ The project aims to provide an automated and interactive learning experience by 
 
 ## How to run the project
 
-Before running this, follow these steps to enable the chat history feature:
+Before running this, follow these steps to enable the chat history feature from the frontend directory of the project:
 
-1. uv add asyncpg
-2. Copy environment variables:
+1. docker-compose up -d
+2. uv add asyncpg
+3. Copy environment variables:
 ```
 cp .env.example .env
 ```
 -> Get your own PROJECT_CONNECTION_STRING from azure 
 -> Generate your own CHAINLIT_AUTH_SECRET by running this : uv run chainlit create-secret 
-2. We now "imprint" our Prisma schema to the fresh PostgreSQL:
+4. We now "imprint" our Prisma schema to the fresh PostgreSQL:
 ```
 npx prisma migrate deploy
 ```
