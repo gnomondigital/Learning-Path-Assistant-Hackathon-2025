@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from datetime import datetime
 from typing import Dict, List
@@ -251,11 +250,14 @@ class SearchPlugin:
         name="build_augmented_prompt",
         description="Build an augmented prompt using retrieval context or function results.",
     )
-    def build_augmented_prompt(self, query: str, retrieval_context: str) -> str:
+    def build_augmented_prompt(
+            self, query: str, retrieval_context: str) -> str:
         return (
             f"Retrieved Context:\n{retrieval_context}\n\n"
             f"User Query: {query}\n\n"
-            "First review the retrieved context, if this does not answer the query, try calling an available plugin functions that might give you an answer. If no context is available, say so."
+            "First review the retrieved context, if this does not answer"
+            " the query, try calling an available plugin functions that"
+            " might give you an answer. If no context is available, say so."
         )
 
     @kernel_function(
@@ -263,14 +265,11 @@ class SearchPlugin:
         description="Retrieve documents from the Azure Search service.",
     )
     def get_retrieval_context(self, query: str) -> str:
-        results = self.search_client.search(query)
+        results = self.search_client.search(
+            query,
+            top=2,
+        )
         context_strings = []
         for result in results:
             context_strings.append(f"Document: {result['content']}")
-        return "\n\n".join(context_strings) if context_strings else "No results found"
-
-
-if __name__ == "__main__":
-    ingestion = ConfluenceIngestion()
-    output = ingestion.update_content_process()
-    logger.info("Confluence data extraction and processing completed.")
+        return context_strings
