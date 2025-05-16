@@ -63,7 +63,6 @@ async def tool():
 @cl.on_chat_start
 async def on_chat_start() -> None:
     logging.info("Chat session started.")
-    # await cl.Message(content="Hi! I'm your GD assistant. Ask me anything.").send()
     cl.user_session.set("fcc", "")
 
 
