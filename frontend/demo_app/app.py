@@ -1,22 +1,8 @@
-import hashlib
-import json
 import logging
-import os
-import sys
 
 import chainlit as cl
 
-
-from frontend.apis.routes import chat, chat_streaming, cleanup, root
-
-
-logging.basicConfig(level=logging.INFO)
-config = {
-    "AZURE_API_KEY": os.getenv("AZURE_AI_INFERENCE_API_KEY"),
-    "DEPLOYMENT_NAME": os.getenv("API_DEPLOYMENT_NAME"),
-    "AZURE_ENDPOINT": os.getenv("AZURE_AI_INFERENCE_ENDPOINT"),
-    "PROMPT": "You are GD Academy's AI assistant. Answer questions or delegate to other agents.",
-}
+from frontend.apis.routes import chat, chat_streaming
 
 
 @cl.password_auth_callback
@@ -38,9 +24,8 @@ async def on_chat_resume(thread):
 
 @cl.step(type="tool")
 async def tool():
+    # Fake tool
     await cl.sleep(2)
-
-    # fcc_value = cl.user_session.get("fcc")
     return "Response from the tool!"
 
 
@@ -54,7 +39,8 @@ async def main(message: cl.Message):
     response = chat(message.content)
 
     logging.info(f"Response from agent handler: {response.get('response')}")
-    response_text = response.get("response", "Sorry, No response from agent handler.")
+    response_text = response.get(
+        "response", "Sorry, No response from agent handler.")
 
     thinking.content = response_text
     await thinking.update()
