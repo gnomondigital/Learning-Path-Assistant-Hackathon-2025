@@ -1,140 +1,54 @@
-# Chainlit datalayer
+# Frontend - Automated Learning Paths Hackathon 2025
 
-PostgresSQL data layer for Chainlit apps
-- Schema description is in `prisma/schema.prisma`
-- Option to upload elements to cloud storage
+# Welcome to Chainlit! :rocket::robot_face:
 
-Works with chainlit >= `2.0.0`.
+This is the frontend for the Automated Learning Paths project. The frontend is built using [Chainlit](https://chainlit.io/), a framework for creating conversational AI applications.
 
-## Demo app
+## What does this project do?
 
-Here is an example on how to set up the data layer with a basic example in `demo_app/`:
+The project aims to provide an automated and interactive learning experience by leveraging AI-driven conversational interfaces. The frontend serves as the user interface for interacting with the system.
 
-https://github.com/user-attachments/assets/a867d470-ccf8-4a6b-8a7d-2b217382a3ed
+## How to run the project
 
-## Try it locally
+Before running this, follow these steps to enable the chat history feature:
 
-### Install dependencies
-
-```
-# For the database.
-pip install asyncpg
-
-# For cloud providers
-pip install boto3                       # AWS S3
-pip install azure-storage-blob aiohttp  # Azure
-pip install google-cloud-storage        # Google Cloud
-```
-
-Copy environment variables:
+1. uv add asyncpg
+2. Copy environment variables:
 ```
 cp .env.example .env
 ```
-
-If you want to test Azure Blob Storage locally, uncomment the corresponding section in `compose.yaml` and
-run `python init_azure_storage.py` to initialize the container. 
-You will have to temporarily change the `AzureBlobStorageClient` class in chainlit repository to use the `http`
-protocol and an adjusted blob endpoint (without the typical Microsoft extension).
-
-### Run services
-
-Run:
-
-```docker
-docker compose up -d
-```
-
-Two services are now up:
-- a fresh (empty) PostgreSQL
-- a 'fake' S3 bucket - to simulate storage for elements
-
-We now "imprint" our Prisma schema to the fresh PostgreSQL:
+-> Get your own PROJECT_CONNECTION_STRING from azure 
+-> Generate your own CHAINLIT_AUTH_SECRET by running this : uv run chainlit create-secret 
+2. We now "imprint" our Prisma schema to the fresh PostgreSQL:
 ```
 npx prisma migrate deploy
 ```
 
 To view your data, use `npx prisma studio`.
 
-Now, all tables are created and welcoming chat data!
 
-## Use from Chainlit
+For more detailed information, refer to the `READMEhistory.md` file.
 
-Add the following environment variables in `.env`:
-```
-# To link to the PostgreSQL instance.
-DATABASE_URL=postgresql://root:root@localhost:5432/postgres
-```
+To run the **frontend**, execute the following command from the frontend directory of the project
 
-Upon running `chainlit run app.py`, Chainlit attempts to connect to the 
-specified database and keeps track of threads, users, steps, elements, feedback. 
-
-Remember to activate user authentication: https://docs.chainlit.io/authentication/overview
-
-Elements -- that is files attached in the chat -- are written to a cloud storage. 
-Locally, we have a fake S3 running up, which you can connect to with the following
-`.env` configuration:
-
-```
-# S3 configuration.
-BUCKET_NAME=my-bucket
-APP_AWS_ACCESS_KEY=random-key
-APP_AWS_SECRET_KEY=random-key
-APP_AWS_REGION=eu-central-1
-DEV_AWS_ENDPOINT=http://localhost:4566
-
-# Azure Blob Storage configuration.
-BUCKET_NAME=my-container
-APP_AZURE_STORAGE_ACCOUNT=devstoreaccount1
-APP_AZURE_STORAGE_ACCESS_KEY=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
-APP_AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;QueueEndpoint=http://localhost:10001/devstoreaccount1;TableEndpoint=http://localhost:10002/devstoreaccount1
-DEV_AZURE_BLOB_ENDPOINT=http://localhost:10000/devstoreaccount1
+```bash
+uv run python -m chainlit run demo_app/app.py
 ```
 
-Re-launch your Chainlit app and add files to your chat. Then browse to 
-http://localhost:4566/my-bucket to list your attachments. 
+Make sure you have all the necessary dependencies installed before running the command.
 
-## Deploy in production
+## Prerequisites
 
-In production, deploy a production database -- please use robust passwords --
-and point to an actual cloud provider. 
+- Python 3.10
+- Chainlit installed (`uv add chainlit`)
 
-Chainlit supports the three major cloud providers, see below for `.env` example
-configurations.
+## Useful Links :link:
 
-### AWS S3
+- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) :books:
+- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! :speech_balloon:
 
-```
-BUCKET_NAME=my-bucket
-APP_AWS_ACCESS_KEY=random-key
-APP_AWS_SECRET_KEY=random-key
-APP_AWS_REGION=eu-central-1
-```
+We can't wait to see what you create with Chainlit! Happy coding! :computer::blush:
 
-### Google Cloud Storage (GCS)
+## Welcome screen
 
-With Google Cloud, the following environment variables are necessary to connect:
-- `BUCKET_NAME`: GCS bucket name
-- `APP_GCS_PROJECT_ID`: project ID (not the project number)
-- `APP_GCS_CLIENT_EMAIL`: email of the service account with adequate permissions 
-- `APP_GCS_PRIVATE_KEY`: secret key to authenticate
-
-Create your service account from "IAM & Admin" > "Service Accounts". 
-You can go with Storage Object Viewer and Creator/Admin. 
-Key for the service account can be created from the "Keys" tab on the service account
-details page. 
-
-Here's an example of what your configuration could look like:
-```
-BUCKET_NAME=my-test-bucket
-APP_GCS_PROJECT_ID=chat-project-123456
-APP_GCS_CLIENT_EMAIL=chat-project-bucket@chat-project-123456.iam.gserviceaccount.com
-APP_GCS_PRIVATE_KEY=ABC...123...XYZ
-```
-
-### Azure Blob Storage
-
-```
-BUCKET_NAME= # should be the container name in Azure terminology.
-APP_AZURE_STORAGE_ACCOUNT=dev-store-account-xyz
-APP_AZURE_STORAGE_ACCESS_KEY=F9xkw3NOs...
-```
+To modify the welcome screen, edit the `chainlit.md` file at the root of your project. If you do not want a welcome screen, just leave this file empty.
