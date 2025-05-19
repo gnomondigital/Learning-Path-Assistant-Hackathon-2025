@@ -7,36 +7,27 @@ import semantic_kernel as sk
 from pydantic import BaseModel
 from semantic_kernel import Kernel
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
-from semantic_kernel.connectors.ai.function_choice_behavior import (
-    FunctionChoiceBehavior,
-)
+from semantic_kernel.connectors.ai.function_choice_behavior import \
+    FunctionChoiceBehavior
 from semantic_kernel.connectors.ai.open_ai import (
-    AzureChatCompletion,
-    OpenAIChatPromptExecutionSettings,
-)
+    AzureChatCompletion, OpenAIChatPromptExecutionSettings)
 from semantic_kernel.connectors.mcp import MCPStdioPlugin
 from semantic_kernel.contents import FunctionCallContent, FunctionResultContent
 from semantic_kernel.contents.chat_message_content import ChatMessageContent
-from semantic_kernel.contents.streaming_chat_message_content import (
-    StreamingChatMessageContent,
-)
+from semantic_kernel.contents.streaming_chat_message_content import \
+    StreamingChatMessageContent
 from semantic_kernel.filters import FunctionInvocationContext
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 from backend.src.agents.bing_seach.bing_search_agent import BingSearch
-from backend.src.agents.bing_seach.search_prompt_instructions import (
-    PROMPT as WEB_SEARCH_PROMPT,
-)
-from backend.src.agents.confluence.academy_rag import (
-    ConfluenceIngestion,
-    SearchPlugin,
-)
-from backend.src.agents.orchestrator_agent.instructions_system import (
-    GLOBAL_PROMPT,
-)
-from backend.src.agents.profile_builder.profile_builder_instructions import (
-    PROMPT as PROFILE_BUILDER_PROMPT,
-)
+from backend.src.agents.bing_seach.search_prompt_instructions import \
+    PROMPT as WEB_SEARCH_PROMPT
+from backend.src.agents.confluence.academy_rag import (ConfluenceIngestion,
+                                                       SearchPlugin)
+from backend.src.agents.orchestrator_agent.instructions_system import \
+    GLOBAL_PROMPT
+from backend.src.agents.profile_builder.profile_builder_instructions import \
+    PROMPT as PROFILE_BUILDER_PROMPT
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

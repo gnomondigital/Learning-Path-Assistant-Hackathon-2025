@@ -17,7 +17,10 @@ class Message(BaseModel):
 
 @app.post("/chat_streaming")
 async def chat_streaming(message: Message):
-    return StreamingResponse(chat_handler.handle_message_streaming(message=message.text), media_type="text/event-stream")
+    return StreamingResponse(
+        chat_handler.handle_message_streaming(message=message.text),
+        media_type="text/event-stream",
+    )
 
 
 @app.post("/chat")
