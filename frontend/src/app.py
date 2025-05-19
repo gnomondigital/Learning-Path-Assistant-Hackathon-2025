@@ -5,8 +5,7 @@ import os
 import sys
 
 import chainlit as cl
-
-from apis.routes import chat, cleanup
+from apis.routes import chat
 
 logging.basicConfig(level=logging.INFO)
 config = {

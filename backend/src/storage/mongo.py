@@ -73,5 +73,6 @@ class MongoMetadataStore(BaseMetadataStore):
 
         logger.info("Creating stats view...")
         self.db.create_collection(
-            "stats", viewOn="token_usages", pipeline=pipeline)
+            "stats", viewOn="token_usages", pipeline=pipeline
+        )
         logger.info("View created successfully!")
