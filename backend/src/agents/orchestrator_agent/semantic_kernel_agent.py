@@ -23,7 +23,7 @@ from backend.src.agents.bing_seach.bing_search_agent import BingSearch
 from backend.src.agents.bing_seach.search_prompt_instructions import \
     PROMPT as WEB_SEARCH_PROMPT
 from backend.src.agents.confluence.academy_rag import (ConfluenceIngestion,
-                                                     SearchPlugin)
+                                                       SearchPlugin)
 from backend.src.agents.orchestrator_agent.instructions_system import \
     GLOBAL_PROMPT
 from backend.src.agents.profile_builder.profile_builder_instructions import \
@@ -92,9 +92,12 @@ class ChatAgentHandler:
         self.agent = None
         self.thread: Optional[ChatHistoryAgentThread] = None
         self.initialized = False
+        self.confluence_plugin = None
         self.intermediate_streaming_steps: list[ChatMessageContent] = []
 
-    async def handle_streaming_intermediate_steps(self, message: ChatMessageContent) -> None:
+    async def handle_streaming_intermediate_steps(
+        self, message: ChatMessageContent
+    ) -> None:
         self.intermediate_streaming_steps.append(message)
 
     async def initialize(self):
@@ -140,11 +143,12 @@ class ChatAgentHandler:
         kernel = sk.Kernel()
         kernel.add_plugin(BingSearch(), plugin_name="Web_search_Agent")
         kernel.add_plugin(profile_builder, plugin_name="Profile_Builder_Agent")
-        kernel.add_plugin(self.confluence_plugin,
-                          plugin_name="Confluence_Agent")
+        kernel.add_plugin(
+            self.confluence_plugin, plugin_name="Confluence_Agent"
+        )
         kernel.add_plugin(
             SearchPlugin(search_client=search_client),
-            plugin_name="azure_ai_search"
+            plugin_name="azure_ai_search",
         )
 
         kernel.add_service(
@@ -160,7 +164,7 @@ class ChatAgentHandler:
         settings = kernel.get_prompt_execution_settings_from_service_id(
             service_id=SERVICE_ID
         )
-        settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
+        settings.function_choice_behavior = FunctionChoiceBehavior.Required()
         self.agent = ChatCompletionAgent(
             kernel=kernel,
             name="Host",
@@ -173,6 +177,7 @@ class ChatAgentHandler:
 
     async def handle_message(self, message: str) -> str:
         await self.initialize()
+        intermediate_steps.clear()
         function_calling = []
         output_text = ""
         async for response in self.agent.invoke(
@@ -207,18 +212,29 @@ class ChatAgentHandler:
         return output_text, function_calling
 
     async def handle_message_streaming(
-            self, message: str) -> AsyncIterable[StreamingChatMessageContent]:
+        self, message: str
+    ) -> AsyncIterable[StreamingChatMessageContent]:
         await self.initialize()
 
         async for result in self.agent.invoke_stream(
-                messages=message, thread=self.thread,
-                on_intermediate_message=self.handle_streaming_intermediate_steps):
+            messages=message,
+            thread=self.thread,
+            on_intermediate_message=self.handle_streaming_intermediate_steps,
+        ):
             yield f"data: {result.content}\n\nlogs: {self.intermediate_streaming_steps}\n\n"
             self.thread = result.thread
 
     async def cleanup(self):
         if self.thread:
             await self.thread.delete()
+
         if self.confluence_plugin:
-            await self.confluence_plugin.__aexit__(None, None, None)
+            try:
+                logging.info("Cleaning up Confluence plugin.")
+                await self.confluence_plugin.__aexit__(None, None, None)
+
+                logging.info("Confluence plugin cleaned up successfully.")
+            except RuntimeError as e:
+                logging.error(f"Error during Confluence plugin cleanup: {e}")
+
         self.initialized = False

@@ -29,9 +29,12 @@ class ConfluenceIngestion:
         self.confluence = Confluence(
             url=self.base_url,
             username=Settings.CONFLUENCE_USERNAME,
-            password=Settings.CONFLUENCE_API_KEY)
+            password=Settings.CONFLUENCE_API_KEY,
+        )
         self.confluence_content = metadata_store.confluence_content
-        self.AZURE_SEARCH_SERVICE_ENDPOINT = Settings.AZURE_SEARCH_SERVICE_ENDPOINT
+        self.AZURE_SEARCH_SERVICE_ENDPOINT = (
+            Settings.AZURE_SEARCH_SERVICE_ENDPOINT
+        )
         self.AZURE_SEARCH_API_KEY = Settings.AZURE_SEARCH_API_KEY
 
     def fetch_all_pages_from_db(self) -> List[Dict]:
@@ -43,12 +46,15 @@ class ConfluenceIngestion:
         return pages
 
     def fetch_all_pages_from_source(
-            self, space_key: str = "GDA", limit: int = 50) -> List[Dict]:
+        self, space_key: str = "GDA", limit: int = 50
+    ) -> List[Dict]:
 
         pages = self.confluence.get_all_pages_from_space_as_generator(
-            space_key, limit=limit,
+            space_key,
+            limit=limit,
             expand="history,space,version",
-            content_type='page')
+            content_type="page",
+        )
         logger.info("Fetching all pages from Confluence...")
         structured_pages = []
         for page in pages:
@@ -62,10 +68,10 @@ class ConfluenceIngestion:
             version = page["version"]["number"]
             space_key = page["space"]["key"]
             content = self.confluence.get_page_by_id(
-                page_id, expand="body.storage")
+                page_id, expand="body.storage"
+            )
             body = content["body"]["storage"]["value"]
 
-            # Store the page data in the metadata store
             page_obj = ConfluencePageModel(
                 page_id=page_id,
                 title=title,
@@ -83,7 +89,7 @@ class ConfluenceIngestion:
         return structured_pages
 
     def comapre_remote_and_local_content(
-            self, new_pages: List[str], old_pages: List[str]
+        self, new_pages: List[str], old_pages: List[str]
     ) -> List[str]:
         """
         we have a list of the two pages and we want to compare them
@@ -96,14 +102,20 @@ class ConfluenceIngestion:
         pages_to_update = []
         for page in new_pages:
             old_page_update = next(
-                (p["last_update"]
-                 for p in old_pages if p["page_id"] == page["page_id"]),
-                None
+                (
+                    p["last_update"]
+                    for p in old_pages
+                    if p["page_id"] == page["page_id"]
+                ),
+                None,
             )
 
             if page["page_id"] not in old_page_ids:
                 pages_to_add.append(page)
-            elif old_page_update is not None and page["last_update"] > old_page_update:
+            elif (
+                old_page_update is not None
+                and page["last_update"] > old_page_update
+            ):
                 pages_to_update.append(page)
             else:
                 logger.info(
@@ -112,16 +124,12 @@ class ConfluenceIngestion:
 
         return pages_to_add, pages_to_update
 
-    def add_pages_to_local(
-            self, pages_to_add: List[Dict]
-    ) -> None:
+    def add_pages_to_local(self, pages_to_add: List[Dict]) -> None:
         """
         Add new pages to the metadata store.
         """
         logger.info("Adding new pages to metadata store...")
-        result = self.confluence_content.insert_many(
-            pages_to_add
-        )
+        result = self.confluence_content.insert_many(pages_to_add)
         if result:
             logger.info(
                 f"Added {len(pages_to_add)} new pages to the metadata store."
@@ -129,24 +137,23 @@ class ConfluenceIngestion:
         else:
             logger.error("Failed to add new pages to the metadata store.")
 
-    def update_pages_in_local(
-            self, pages_to_update: List[Dict]
-    ) -> None:
+    def update_pages_in_local(self, pages_to_update: List[Dict]) -> None:
         """
         Update existing pages in the metadata store.
         """
         logger.info("Updating existing pages in metadata store...")
         for page in pages_to_update:
             result = self.confluence_content.update_one(
-                {"page_id": page["page_id"]},
-                {"$set": page}
+                {"page_id": page["page_id"]}, {"$set": page}
             )
             if result:
                 logger.info(
-                    f"Updated page {page['id']} in the metadata store.")
+                    f"Updated page {page['id']} in the metadata store."
+                )
             else:
                 logger.error(
-                    f"Failed to update page {page['id']} in the metadata store.")
+                    f"Failed to update page {page['id']} in the metadata store."
+                )
 
     def index_data_in_azure(self, pages_to_index: List[Dict]) -> None:
         """
@@ -162,14 +169,14 @@ class ConfluenceIngestion:
         credential = AzureKeyCredential(search_api_key)
 
         index_client = SearchIndexClient(
-            endpoint=search_service_endpoint, credential=credential)
+            endpoint=search_service_endpoint, credential=credential
+        )
         search_client = SearchClient(
             endpoint=search_service_endpoint,
             index_name=index_name,
-            credential=credential
+            credential=credential,
         )
 
-        # Check if index exists
         try:
             index_client.get_index(index_name)
             logger.info(f"Index '{index_name}' already exists.")
@@ -177,19 +184,21 @@ class ConfluenceIngestion:
             logger.info(f"Creating new index '{index_name}'...")
             fields = [
                 SimpleField(
-                    name="id", type=SearchFieldDataType.String, key=True),
+                    name="id", type=SearchFieldDataType.String, key=True
+                ),
                 SearchableField(name="title", type=SearchFieldDataType.String),
                 SearchableField(
-                    name="content", type=SearchFieldDataType.String),
+                    name="content", type=SearchFieldDataType.String
+                ),
                 SimpleField(name="version", type=SearchFieldDataType.Int32),
-                SimpleField(name="last_update",
-                            type=SearchFieldDataType.String),
-                SearchableField(name="space", type=SearchFieldDataType.String)
+                SimpleField(
+                    name="last_update", type=SearchFieldDataType.String
+                ),
+                SearchableField(name="space", type=SearchFieldDataType.String),
             ]
             index = SearchIndex(name=index_name, fields=fields)
             index_client.create_index(index)
 
-        # Prepare documents
         documents = []
         for page in pages_to_index:
             doc = {
@@ -198,11 +207,10 @@ class ConfluenceIngestion:
                 "content": page["body"],
                 "version": page["version"],
                 "last_update": str(page["last_update"]),
-                "space": page["space"]
+                "space": page["space"],
             }
             documents.append(doc)
 
-        # Upload to Azure Search
         if documents:
             result = search_client.upload_documents(documents=documents)
             logger.info(f"Indexed {len(documents)} documents in Azure Search.")
@@ -223,17 +231,24 @@ class ConfluenceIngestion:
             new_pages=remote_pages,
         )
 
-        self.add_pages_to_local(
-            pages_to_add=pages_to_add) if pages_to_add else None
-        self.update_pages_in_local(
-            pages_to_update=pages_to_update) if pages_to_update else None
+        (
+            self.add_pages_to_local(pages_to_add=pages_to_add)
+            if pages_to_add
+            else None
+        )
+        (
+            self.update_pages_in_local(pages_to_update=pages_to_update)
+            if pages_to_update
+            else None
+        )
         logger.info(
             f"""Added {len(pages_to_add)} new pages and\
                 updated {len(pages_to_update)} pages in the metadata store.
             """
         )
         search_client = self.index_data_in_azure(
-            pages_to_index=pages_to_add + pages_to_update)
+            pages_to_index=pages_to_add + pages_to_update
+        )
         logger.info(
             f"""Indexed {len(pages_to_add) + len(pages_to_update)} pages in Azure Search.
             """
@@ -251,7 +266,8 @@ class SearchPlugin:
         description="Build an augmented prompt using retrieval context or function results.",
     )
     def build_augmented_prompt(
-            self, query: str, retrieval_context: str) -> str:
+        self, query: str, retrieval_context: str
+    ) -> str:
         return (
             f"Retrieved Context:\n{retrieval_context}\n\n"
             f"User Query: {query}\n\n"
