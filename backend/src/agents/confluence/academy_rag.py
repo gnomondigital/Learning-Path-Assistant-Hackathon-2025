@@ -6,12 +6,9 @@ from atlassian import Confluence
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
-from azure.search.documents.indexes.models import (
-    SearchableField,
-    SearchFieldDataType,
-    SearchIndex,
-    SimpleField,
-)
+from azure.search.documents.indexes.models import (SearchableField,
+                                                   SearchFieldDataType,
+                                                   SearchIndex, SimpleField)
 from requests.auth import HTTPBasicAuth
 from semantic_kernel.functions import kernel_function
 
@@ -75,7 +72,6 @@ class ConfluenceIngestion:
             )
             body = content["body"]["storage"]["value"]
 
-            # Store the page data in the metadata store
             page_obj = ConfluencePageModel(
                 page_id=page_id,
                 title=title,
@@ -181,7 +177,6 @@ class ConfluenceIngestion:
             credential=credential,
         )
 
-        # Check if index exists
         try:
             index_client.get_index(index_name)
             logger.info(f"Index '{index_name}' already exists.")
@@ -204,7 +199,6 @@ class ConfluenceIngestion:
             index = SearchIndex(name=index_name, fields=fields)
             index_client.create_index(index)
 
-        # Prepare documents
         documents = []
         for page in pages_to_index:
             doc = {
@@ -217,7 +211,6 @@ class ConfluenceIngestion:
             }
             documents.append(doc)
 
-        # Upload to Azure Search
         if documents:
             result = search_client.upload_documents(documents=documents)
             logger.info(f"Indexed {len(documents)} documents in Azure Search.")

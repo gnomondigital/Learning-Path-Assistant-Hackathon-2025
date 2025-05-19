@@ -53,7 +53,9 @@ class AcademyAgent:
                 logger.warning("No results found for query: %s", query)
                 return "No results found in Confluence for your query."
             formatted_confluence_pages = []
-            for i, result in enumerate(search_confluence_pages.get("results", []), 1):
+            for i, result in enumerate(
+                search_confluence_pages.get("results", []), 1
+            ):
                 title = result.get("title", "Untitled")
                 space = result.get("space", {}).get("name", "Unknown Space")
                 url = f"{self.base_url}{result.get('_links', {}).get('webui', '')}"
