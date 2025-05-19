@@ -1,6 +1,4 @@
-import asyncio
 import logging
-import os
 from datetime import datetime
 from typing import Dict, List
 
@@ -15,6 +13,7 @@ from azure.search.documents.indexes.models import (
     SimpleField,
 )
 from requests.auth import HTTPBasicAuth
+from semantic_kernel.functions import kernel_function
 
 from backend.src.agents.confluence.model.base import ConfluencePageModel
 from backend.src.storage.client import METADATA_STORE_CLIENT
@@ -101,26 +100,35 @@ class ConfluenceIngestion:
         we extruct what to add , what to modify by comparing last_update
         """
         logger.info("Comparing page IDs and updated pages...")
-        old_page_ids = {page["id"] for page in old_pages}
+        old_page_ids = {page["page_id"] for page in old_pages}
 
         pages_to_add = []
         pages_to_update = []
         for page in new_pages:
-            if page["id"] not in old_page_ids:
-                pages_to_add.append(page)
-            elif page["last_update"] > next(
-                (p["last_update"] for p in old_pages if p["id"] == page["id"]),
+            old_page_update = next(
+                (
+                    p["last_update"]
+                    for p in old_pages
+                    if p["page_id"] == page["page_id"]
+                ),
                 None,
+            )
+
+            if page["page_id"] not in old_page_ids:
+                pages_to_add.append(page)
+            elif (
+                old_page_update is not None
+                and page["last_update"] > old_page_update
             ):
                 pages_to_update.append(page)
             else:
                 logger.info(
-                    f"Page {page['id']} is already up to date in the metadata store."
+                    f"Page {page['page_id']} is already up to date in the metadata store."
                 )
 
         return pages_to_add, pages_to_update
 
-    async def add_pages_to_local(self, pages_to_add: List[Dict]) -> None:
+    def add_pages_to_local(self, pages_to_add: List[Dict]) -> None:
         """
         Add new pages to the metadata store.
         """
@@ -133,7 +141,7 @@ class ConfluenceIngestion:
         else:
             logger.error("Failed to add new pages to the metadata store.")
 
-    async def update_pages_in_local(self, pages_to_update: List[Dict]) -> None:
+    def update_pages_in_local(self, pages_to_update: List[Dict]) -> None:
         """
         Update existing pages in the metadata store.
         """
@@ -151,7 +159,74 @@ class ConfluenceIngestion:
                     f"Failed to update page {page['id']} in the metadata store."
                 )
 
-    async def update_content_process(self):
+    def index_data_in_azure(self, pages_to_index: List[Dict]) -> None:
+        """
+        Index the data in Azure Cognitive Search.
+        """
+        logger.info("Indexing data in Azure Cognitive Search...")
+
+        search_service_endpoint = self.AZURE_SEARCH_SERVICE_ENDPOINT
+        search_api_key = self.AZURE_SEARCH_API_KEY
+        index_name = "confluence-pages-index"
+        print(search_service_endpoint, search_api_key, index_name)
+
+        credential = AzureKeyCredential(search_api_key)
+
+        index_client = SearchIndexClient(
+            endpoint=search_service_endpoint, credential=credential
+        )
+        search_client = SearchClient(
+            endpoint=search_service_endpoint,
+            index_name=index_name,
+            credential=credential,
+        )
+
+        # Check if index exists
+        try:
+            index_client.get_index(index_name)
+            logger.info(f"Index '{index_name}' already exists.")
+        except Exception:
+            logger.info(f"Creating new index '{index_name}'...")
+            fields = [
+                SimpleField(
+                    name="id", type=SearchFieldDataType.String, key=True
+                ),
+                SearchableField(name="title", type=SearchFieldDataType.String),
+                SearchableField(
+                    name="content", type=SearchFieldDataType.String
+                ),
+                SimpleField(name="version", type=SearchFieldDataType.Int32),
+                SimpleField(
+                    name="last_update", type=SearchFieldDataType.String
+                ),
+                SearchableField(name="space", type=SearchFieldDataType.String),
+            ]
+            index = SearchIndex(name=index_name, fields=fields)
+            index_client.create_index(index)
+
+        # Prepare documents
+        documents = []
+        for page in pages_to_index:
+            doc = {
+                "id": str(page["page_id"]),
+                "title": page["title"],
+                "content": page["body"],
+                "version": page["version"],
+                "last_update": str(page["last_update"]),
+                "space": page["space"],
+            }
+            documents.append(doc)
+
+        # Upload to Azure Search
+        if documents:
+            result = search_client.upload_documents(documents=documents)
+            logger.info(f"Indexed {len(documents)} documents in Azure Search.")
+        else:
+            logger.info("No documents to index.")
+
+        return search_client
+
+    def update_content_process(self):
         """
         Update the content in the metadata store.
         """
@@ -163,16 +238,61 @@ class ConfluenceIngestion:
             new_pages=remote_pages,
         )
 
-        await self.add_pages_to_local(pages_to_add=pages_to_add)
-        await self.update_pages_in_local(pages_to_update=pages_to_update)
+        (
+            self.add_pages_to_local(pages_to_add=pages_to_add)
+            if pages_to_add
+            else None
+        )
+        (
+            self.update_pages_in_local(pages_to_update=pages_to_update)
+            if pages_to_update
+            else None
+        )
         logger.info(
             f"""Added {len(pages_to_add)} new pages and\
                 updated {len(pages_to_update)} pages in the metadata store.
             """
         )
+        search_client = self.index_data_in_azure(
+            pages_to_index=pages_to_add + pages_to_update
+        )
+        logger.info(
+            f"""Indexed {len(pages_to_add) + len(pages_to_update)} pages in Azure Search.
+            """
+        )
+        return search_client
 
 
-if __name__ == "__main__":
-    ingestion = ConfluenceIngestion()
-    output = asyncio.run(ingestion.update_content_process())
-    logger.info("Confluence data extraction and processing completed.")
+class SearchPlugin:
+
+    def __init__(self, search_client: SearchClient):
+        self.search_client = search_client
+
+    @kernel_function(
+        name="build_augmented_prompt",
+        description="Build an augmented prompt using retrieval context or function results.",
+    )
+    def build_augmented_prompt(
+        self, query: str, retrieval_context: str
+    ) -> str:
+        return (
+            f"Retrieved Context:\n{retrieval_context}\n\n"
+            f"User Query: {query}\n\n"
+            "First review the retrieved context, if this does not answer"
+            " the query, try calling an available plugin functions that"
+            " might give you an answer. If no context is available, say so."
+        )
+
+    @kernel_function(
+        name="retrieve_documents",
+        description="Retrieve documents from the Azure Search service.",
+    )
+    def get_retrieval_context(self, query: str) -> str:
+        results = self.search_client.search(
+            query,
+            top=2,
+        )
+        context_strings = []
+        for result in results:
+            context_strings.append(f"Document: {result['content']}")
+        return context_strings
