@@ -1,5 +1,7 @@
 import logging
+from typing import AsyncGenerator
 
+import httpx
 import requests
 
 logger = logging.getLogger("routes")
@@ -36,3 +38,14 @@ def cleanup():
     except requests.exceptions.RequestException as e:
         logger.error(f"An error occurred: {e}")
         return None
+
+
+async def chat_streaming(message: str) -> AsyncGenerator[str, None]:
+    url = "http://localhost:8000/chat_streaming"
+    async with httpx.AsyncClient(timeout=None) as client:
+        async with client.stream(
+            "POST", url, json={"text": message}
+        ) as response:
+            async for line in response.aiter_lines():
+                if line.strip():
+                    yield line

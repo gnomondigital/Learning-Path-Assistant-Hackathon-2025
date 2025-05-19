@@ -30,6 +30,9 @@ dependencies = [
     "uvicorn>=0.34.2",
     "pymongo>=4.12.1",
     "orjson>=3.10.18",
+    "literalai>=0.1.201",
+    "npx>=0.1.6",
+    "asyncpg>=0.30.0",
 ]
 
 [tool.setuptools.packages.find]
