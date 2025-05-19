@@ -173,7 +173,7 @@ class ChatAgentHandler:
         settings = kernel.get_prompt_execution_settings_from_service_id(
             service_id=SERVICE_ID
         )
-        settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
+        settings.function_choice_behavior = FunctionChoiceBehavior.Required()
         self.agent = ChatCompletionAgent(
             kernel=kernel,
             name="Host",
