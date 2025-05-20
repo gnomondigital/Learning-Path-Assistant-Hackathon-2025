@@ -37,7 +37,7 @@ Process Flow
 QUESTIONS EXAMPLES
 ------------------
     {
-        "key": "current_postion",
+        "key": "current_position",
         "question": "What's your current specific role or position?",
         "input_type": "text",
         "placeholder": "The name of your current position/ post title / occupation"

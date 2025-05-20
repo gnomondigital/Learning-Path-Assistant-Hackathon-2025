@@ -44,14 +44,14 @@ SERVICE_ID = "agent"
 
 
 class Profile(BaseModel):
-    current_postion: str
+    current_position: str
     target_role: str
     learning_obstacles: str
     time_limit: str
     preferred_learning_style: list[str]
 
 
-def _create_kernel_with_chat_completion(service_id: str) -> Kernel:
+def _create_kernel_with_chat_completion(service_id: str = SERVICE_ID) -> Kernel:
     kernel = Kernel()
     kernel.add_service(
         AzureChatCompletion(
@@ -100,15 +100,16 @@ class ChatAgentHandler:
     ) -> None:
         self.intermediate_streaming_steps.append(message)
 
-    async def initialize(self):
+    async def initialise(self):
         if self.initialized:
             return
 
+        kernel = _create_kernel_with_chat_completion(SERVICE_ID)
         settings = OpenAIChatPromptExecutionSettings()
         settings.response_format = Profile
 
         profile_builder = ChatCompletionAgent(
-            kernel=_create_kernel_with_chat_completion("profile_builder"),
+            kernel=kernel,
             name="ProfileBuilderAgent",
             instructions=PROFILE_BUILDER_PROMPT,
             arguments=KernelArguments(settings=settings),
@@ -140,7 +141,6 @@ class ChatAgentHandler:
 
         await self.confluence_plugin.__aenter__()
 
-        kernel = sk.Kernel()
         kernel.add_plugin(BingSearch(), plugin_name="Web_search_Agent")
         kernel.add_plugin(profile_builder, plugin_name="Profile_Builder_Agent")
         kernel.add_plugin(
@@ -151,14 +151,6 @@ class ChatAgentHandler:
             plugin_name="azure_ai_search",
         )
 
-        kernel.add_service(
-            AzureChatCompletion(
-                service_id=SERVICE_ID,
-                api_key=AZURE_AI_INFERENCE_API_KEY,
-                deployment_name=API_DEPLOYMENT_NAME,
-                endpoint=AZURE_AI_INFERENCE_ENDPOINT,
-            )
-        )
         kernel.add_filter("function_invocation", logger_filter)
 
         settings = kernel.get_prompt_execution_settings_from_service_id(
@@ -176,7 +168,7 @@ class ChatAgentHandler:
         self.initialized = True
 
     async def handle_message(self, message: str) -> str:
-        await self.initialize()
+        await self.initialise()
         intermediate_steps.clear()
         function_calling = []
         output_text = ""
@@ -214,7 +206,7 @@ class ChatAgentHandler:
     async def handle_message_streaming(
         self, message: str
     ) -> AsyncIterable[StreamingChatMessageContent]:
-        await self.initialize()
+        await self.initialise()
 
         async for result in self.agent.invoke_stream(
             messages=message,
