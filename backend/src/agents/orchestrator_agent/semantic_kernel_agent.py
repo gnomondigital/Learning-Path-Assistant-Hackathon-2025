@@ -22,7 +22,6 @@ from semantic_kernel.functions.kernel_arguments import KernelArguments
 from backend.src.agents.bing_seach.bing_search_agent import BingSearch
 from backend.src.agents.bing_seach.search_prompt_instructions import \
     PROMPT as WEB_SEARCH_PROMPT
-from backend.src.agents.confluence.academy_agent import AcademyAgent
 from backend.src.agents.confluence.academy_rag import (ConfluenceIngestion,
                                                        SearchPlugin)
 from backend.src.agents.orchestrator_agent.instructions_system import \
@@ -105,9 +104,9 @@ class ChatAgentHandler:
         if self.initialized:
             return
 
-        kernel = _create_kernel_with_chat_completion(SERVICE_ID)
+        kernel = _create_kernel_with_chat_completion()
         settings = OpenAIChatPromptExecutionSettings()
-        settings.response_format = Profile
+        # settings.response_format = Profile
 
         profile_builder = ChatCompletionAgent(
             kernel=kernel,
@@ -148,15 +147,11 @@ class ChatAgentHandler:
         kernel.add_plugin(profile_builder, plugin_name="Profile_Builder_Agent")
         kernel.add_plugin(
             self.confluence_plugin,
-            plugin_name="learning_path_building_internal_content_mcp"
+            plugin_name="internal_content_mcp"
         )
         kernel.add_plugin(
             SearchPlugin(search_client=search_client),
-            plugin_name="learning_path_building_internal_content_rag",
-        )
-        kernel.add_plugin(
-            AcademyAgent(),
-            plugin_name="learning_path_building_internal_content_tools",
+            plugin_name="internal_content_rag",
         )
 
         kernel.add_filter("function_invocation", logger_filter)

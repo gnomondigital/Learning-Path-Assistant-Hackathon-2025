@@ -2,7 +2,6 @@ import hashlib
 import json
 import logging
 import os
-import sys
 
 import chainlit as cl
 from apis.routes import chat
