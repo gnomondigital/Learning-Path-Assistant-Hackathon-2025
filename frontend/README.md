@@ -1,7 +1,5 @@
 # Frontend - Automated Learning Paths Hackathon 2025
 
-# Learning Path Project Documentation – Frontend Setup:
-
 ## Project Overview
 The Learning Path project is designed to build personalized learning journeys by integrating AI-driven assistance. It provides users with tailored recommendations, helping them progress in their fields efficiently. The frontend plays a crucial role in delivering an intuitive experience, making interactions smooth and visually engaging.
 
@@ -26,18 +24,16 @@ DEPLOYMENT_NAME="get your deployment name"
 AZURE_ENDPOINT="get your azure endpoint"
 PROMPT: "You are GD Academy's AI assistant. Answer questions or delegate to other agents.",
 ```
-    -Setting environment variables for seamless integration.
-    -Adjusting the backend for smooth data exchange.
-    -Debugging connection issues to ensure real-time interaction.
+  1. Setting environment variables for seamless integration.
+  2. Adjusting the backend for smooth data exchange.
+  3. Debugging connection issues to ensure real-time interaction.
 
 These early steps laid the foundation for a fully functioning frontend, bridging the gap between user inputs and intelligent responses from the backend.
 
-## Refining the Frontend & Enhancing Agent Transparency
-
-# 3. Cleaning Up the Code & Structuring Endpoints
+## 3. Cleaning Up the Code & Structuring Endpoints
 As the project evolved, I realized that a cleaner codebase was essential for scalability and maintainability. I restructured the backend, creating dedicated endpoints to improve separation of concerns. Once the backend is done and working , i created the API calls in the frontend in order to retreive the responses.
 
-# 4. Displaying the Tools Used by the Agent
+## 4. Displaying the Tools Used by the Agent
 I wanted users to see which tools the agent was calling when answering queries. Initially, this posed a challenge. How could I extract this information while ensuring a smooth response generation process?
 
 After some debugging, I managed to:
@@ -54,15 +50,13 @@ After some debugging, I managed to:
 
 This added transparency enhances trust in the system, showing users not only what the agent says but also how it arrives at its conclusions.
 
-## Enhancing the Frontend with Chat History & Conversation Tracking
-
-### 5. Adding Conversation History to the Frontend Chatbot
+## 5. Adding Conversation History to the Frontend Chatbot
 
 As I continued refining the chatbot experience, I wanted to add chat history so users could see previous conversations seamlessly. Initially, I struggled with documentation on how to implement this in Chainlit, until I discovered [Chainlit Datalayer (GitHub Repo)](https://github.com/Chainlit/chainlit-datalayer), a valuable resource that outlined the process of creating conversation history in a Chainlit app.
 
 ![Learning Path Frontend - Conversation History](images/3.png "Screenshot showcasing conversation history in the Learning Path Frontend")
 
-### 6. Using Chainlit Datalayer & PostgreSQL
+## 6. Using Chainlit Datalayer & PostgreSQL
 
 This GitHub repository utilizes a PostgreSQL database running inside a Docker container, making data handling efficient. The setup allowed me to visualize users, conversations, and threads directly in a structured database.
 
@@ -126,7 +120,7 @@ PostgreSQL is a powerful relational database known for handling structured queri
 
 ![Learning Path Frontend - Enhanced View](images/4.png "Enhanced screenshot of the Learning Path Frontend")
 
-### 7. Overcoming Execution Issues
+## 7. Overcoming Execution Issues
 
 At first, I faced a major challenge when trying to integrate the database layer. I was executing my code from the project root, which didn’t work for this setup. Instead, I realized that I needed to execute the code from the frontend directory for the conversation elements to appear correctly on the right-hand side of the UI.
 
