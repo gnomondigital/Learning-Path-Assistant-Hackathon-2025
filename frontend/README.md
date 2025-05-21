@@ -5,7 +5,7 @@
 ## Project Overview
 The Learning Path project is designed to build personalized learning journeys by integrating AI-driven assistance. It provides users with tailored recommendations, helping them progress in their fields efficiently. The frontend plays a crucial role in delivering an intuitive experience, making interactions smooth and visually engaging.
 
-![Learning Path Frontend](images/Learning%20Path%20Project%20Documentation%20%E2%80%93%20Frontend%20Setup%20-%20visual%20selection.png "Screenshot of the Learning Path Frontend")
+![Learning Path Frontend](./images/1.png "Screenshot of the Learning Path Frontend")
 
 ## 1. Initializing Chainlit: [Chainlit Documentation](https://docs.chainlit.io/get-started/overview)
 
@@ -50,7 +50,7 @@ After some debugging, I managed to:
 
 3. Ensure a seamless experience where users receive both the answer and insight into how the agent reached it.
 
-![Learning Path Frontend - Alternate View](images/Learning%20Path%20Project%20Documentation%20%E2%80%93%20Frontend%20Setup%20-%20visual%20selection%20(1).png "Alternate screenshot of the Learning Path Frontend")
+![Learning Path Frontend - Alternate View](images/2.png "Alternate screenshot of the Learning Path Frontend")
 
 This added transparency enhances trust in the system, showing users not only what the agent says but also how it arrives at its conclusions.
 
@@ -60,7 +60,7 @@ This added transparency enhances trust in the system, showing users not only wha
 
 As I continued refining the chatbot experience, I wanted to add chat history so users could see previous conversations seamlessly. Initially, I struggled with documentation on how to implement this in Chainlit, until I discovered [Chainlit Datalayer (GitHub Repo)](https://github.com/Chainlit/chainlit-datalayer), a valuable resource that outlined the process of creating conversation history in a Chainlit app.
 
-![Learning Path Frontend - Conversation History](images/Learning%20Path%20Project%20Documentation%20%E2%80%93%20Frontend%20Setup%20-%20visual%20selection%20(2).png "Screenshot showcasing conversation history in the Learning Path Frontend")
+![Learning Path Frontend - Conversation History](images/3.png "Screenshot showcasing conversation history in the Learning Path Frontend")
 
 ### 6. Using Chainlit Datalayer & PostgreSQL
 
@@ -124,7 +124,7 @@ PostgreSQL is a powerful relational database known for handling structured queri
 - **Keeping track of user interactions** → So you can retrieve messages later.
 - **Making data visualization easier** → You could query the database to inspect users and messages directly.
 
-![Learning Path Frontend - Enhanced View](images/Learning%20Path%20Project%20Documentation%20%E2%80%93%20Frontend%20Setup%20-%20visual%20selection%20(3).png "Enhanced screenshot of the Learning Path Frontend")
+![Learning Path Frontend - Enhanced View](images/4.png "Enhanced screenshot of the Learning Path Frontend")
 
 ### 7. Overcoming Execution Issues
 
@@ -132,7 +132,7 @@ At first, I faced a major challenge when trying to integrate the database layer.
 
 After troubleshooting and adjusting my execution flow, I successfully integrated the Chainlit Datalayer into my project! The final step was refining the frontend logic to ensure the conversation history appeared smoothly alongside new responses.
 
-![Learning Path Frontend - Final View](images/Learning%20Path%20Project%20Documentation%20%E2%80%93%20Frontend%20Setup%20-%20visual%20selection%20(4).png "Final screenshot of the Learning Path Frontend")
+![Learning Path Frontend - Final View](images/5.png "Final screenshot of the Learning Path Frontend")
 
 ## Conclusion
 
@@ -144,4 +144,4 @@ With clean code, structured components, and a fully operational Chainlit app, th
 
 This documentation not only outlines the technical steps but also reflects the real-world problem-solving that shaped the project. Now, with a structured and scalable frontend, the foundation is set for future improvements and expansions in intelligent learning path recommendations.
 
-![Learning Path Frontend - Additional View](images/Learning%20Path%20Project%20Documentation%20%E2%80%93%20Frontend%20Setup%20-%20visual%20selection%20(5).png "Additional screenshot of the Learning Path Frontend")
+![Learning Path Frontend - Additional View](images/6.png "Additional screenshot of the Learning Path Frontend")
