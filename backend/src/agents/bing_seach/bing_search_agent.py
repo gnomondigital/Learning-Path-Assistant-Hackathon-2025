@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 
 class BingSearch:
     def __init__(self) -> None:
-        logger.info("Initializing BingSearch agent instance.")
+        logger.info("Initialising BingSearch agent instance.")
         self.client = None
         self.toolset = AsyncToolSet()
         self.agent = None
         self.thread = None
 
     async def init_web_agent(self) -> None:
-        logger.info("Initializing web agent.")
+        logger.info("Initialising web agent.")
         if not self.agent:
             creds = DefaultAzureCredential()
             self.client = AIProjectClient.from_connection_string(
@@ -57,7 +57,7 @@ class BingSearch:
 
     @kernel_function(
         name="search_web",
-        description="Perform a Bing web search, search the web as an external tool for data sources . the query can be content, news, or sources for learning path",
+        description="Perform a Bing web search, search the web as an external tool for data sources in order to create learning paths for users . the query can be content, news, or links.",
     )
     async def search_web(self, query: str) -> str:
         logger.info(f"Executing search_web with query: {query}")
