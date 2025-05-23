@@ -23,6 +23,7 @@ from backend.src.agents.bing_seach.search_prompt_instructions import \
     PROMPT as WEB_SEARCH_PROMPT
 from backend.src.agents.confluence.academy_rag import (ConfluenceIngestion,
                                                        SearchPlugin)
+from backend.src.agents.google.calendar import GoogleCalendarPlugin
 from backend.src.agents.google.gmail import GmailPlugin
 from backend.src.agents.orchestrator_agent.instructions_system import \
     GLOBAL_PROMPT
@@ -156,6 +157,10 @@ class ChatAgentHandler:
         kernel.add_plugin(
             GmailPlugin(),
             plugin_name="gmail_email_plugin",
+        )
+        kernel.add_plugin(
+            GoogleCalendarPlugin(),
+            plugin_name="google_calendar_plugin",
         )
 
         kernel.add_filter("function_invocation", logger_filter)

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class GmailPlugin:
     def __init__(
             self, credentials_file='credentials.json',
-            token_file='token.pickle', scopes=None):
+            token_file='token_gmail.pickle', scopes=None):
         """
         Initializes the GmailPlugin.
 
