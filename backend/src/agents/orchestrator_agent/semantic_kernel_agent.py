@@ -3,7 +3,6 @@ import os
 from collections.abc import AsyncIterable
 from typing import Awaitable, Callable, Optional
 
-import semantic_kernel as sk
 from pydantic import BaseModel
 from semantic_kernel import Kernel
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
@@ -24,6 +23,7 @@ from backend.src.agents.bing_seach.search_prompt_instructions import \
     PROMPT as WEB_SEARCH_PROMPT
 from backend.src.agents.confluence.academy_rag import (ConfluenceIngestion,
                                                        SearchPlugin)
+from backend.src.agents.google.gmail import GmailPlugin
 from backend.src.agents.orchestrator_agent.instructions_system import \
     GLOBAL_PROMPT
 from backend.src.agents.profile_builder.profile_builder_instructions import \
@@ -98,7 +98,7 @@ class ChatAgentHandler:
     async def handle_streaming_intermediate_steps(
         self, message: ChatMessageContent
     ) -> None:
-        self.intermediate_streaming_steps.append(message)
+        self.intermediate_streaming_steps.append(message.items)
 
     async def initialise(self):
         if self.initialized:
@@ -153,13 +153,17 @@ class ChatAgentHandler:
             SearchPlugin(search_client=search_client),
             plugin_name="internal_content_rag",
         )
+        kernel.add_plugin(
+            GmailPlugin(),
+            plugin_name="gmail_email_plugin",
+        )
 
         kernel.add_filter("function_invocation", logger_filter)
 
         settings = kernel.get_prompt_execution_settings_from_service_id(
             service_id=SERVICE_ID
         )
-        settings.function_choice_behavior = FunctionChoiceBehavior.Required()
+        settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
         self.agent = ChatCompletionAgent(
             kernel=kernel,
             name="Host",

@@ -179,3 +179,7 @@ data/
 
 .chainlit/
 .files/
+
+credentials.json
+
+token.pickle

@@ -4,7 +4,7 @@ import logging
 import os
 
 import chainlit as cl
-from apis.routes import chat
+from frontend.apis.routes import chat
 
 logging.basicConfig(level=logging.INFO)
 config = {
