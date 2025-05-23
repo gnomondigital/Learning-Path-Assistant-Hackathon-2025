@@ -183,3 +183,5 @@ data/
 credentials.json
 
 token.pickle
+token_gmail.pickle
+token_calendar.pickle
