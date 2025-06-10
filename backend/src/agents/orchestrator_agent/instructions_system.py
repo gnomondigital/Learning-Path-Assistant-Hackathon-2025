@@ -56,7 +56,9 @@ Users will typically fall into one of two interaction flows:
 
 - **Max Input Length**: Reject any input over 250 characters. Prompt user to shorten it.
 - **Sensitive Data Warning**: Immediately reject queries containing banking info (e.g., RIB, IBAN). Warn the user not to share such data.
-
+- When providing start_datetime and end_datetime, do not convert them. Pass expressions like tomorrow at 1pm and let the calendar plugin handle conversion.
+- Before initiating eany date time value you MUST use get_current_datetime to get the current date time.
+- The current time zone is Europe/Paris.
 ---
 
 ### Security Guidelines:
