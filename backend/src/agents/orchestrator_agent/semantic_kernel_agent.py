@@ -191,15 +191,15 @@ class ChatAgentHandler:
         ):
             output_text += str(response)
             self.thread = response.thread
-        print(f"# {response.name}: {response.content}")
-        print("\nIntermediate Steps:")
+        logger.info(f"# {response.name}: {response.content}")
+        logger.info("\nIntermediate Steps:")
         for msg in intermediate_steps:
             if any(
                 isinstance(item, FunctionResultContent) for item in msg.items
             ):
                 for fr in msg.items:
                     if isinstance(fr, FunctionResultContent):
-                        print(
+                        logger.info(
                             f"Function Result:> {fr.result} for function: {fr.name}"
                         )
             elif any(
@@ -207,12 +207,12 @@ class ChatAgentHandler:
             ):
                 for fcc in msg.items:
                     if isinstance(fcc, FunctionCallContent):
-                        print(
+                        logger.info(
                             f"Function Call:> {fcc.name} with arguments: {fcc.arguments}"
                         )
                         function_calling.append(fcc.name)
             else:
-                print(f"{msg.role}: {msg.content}")
+                logger.info(f"{msg.role}: {msg.content}")
         return output_text, function_calling
 
     async def handle_message_streaming(
