@@ -1,23 +1,17 @@
 import hashlib
 import json
 import logging
-import os
 
 import chainlit as cl
+
 from frontend.apis.routes import chat
 
 logging.basicConfig(level=logging.INFO)
-config = {
-    "AZURE_API_KEY": os.getenv("AZURE_AI_INFERENCE_API_KEY"),
-    "DEPLOYMENT_NAME": os.getenv("API_DEPLOYMENT_NAME"),
-    "AZURE_ENDPOINT": os.getenv("AZURE_AI_INFERENCE_ENDPOINT"),
-    "PROMPT": "You are GD Academy's AI assistant. Answer questions or delegate to other agents.",
-}
 
 
 def load_users_from_file() -> list:
     logging.info("Loading users from file")
-    with open("../data/users.json", "r") as f:
+    with open("../../data/users.json", "r") as f:
         users = json.load(f)
     logging.info("Loaded users")
     return users
@@ -37,7 +31,6 @@ def auth_callback(username: str, password: str) -> cl.User | None:
         if user["username"] == username and verify_password(
             user["password_hash"], password
         ):
-            user_id = f"{username}_{user['password_hash']}"
             logging.info(f"User authenticated successfully: {username}")
             return cl.User(
                 identifier=username,
@@ -72,10 +65,11 @@ async def main(message: cl.Message):
     logging.info(f"Received message: {message.content}")
 
     response = chat(message.content)
-    print(f"fcc : {response.get("fcc")}")
+    logging.info(f"fcc : {response.get("fcc")}")
     fcc = response.get("fcc")
     cl.user_session.set("fcc", fcc)
-    response_text = response.get("response", "Sorry, No response from agent handler.")
+    response_text = response.get(
+        "response", "Sorry, No response from agent handler.")
 
     thinking.content = response_text
     await thinking.update()
