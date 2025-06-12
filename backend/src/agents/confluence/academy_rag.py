@@ -164,7 +164,7 @@ class ConfluenceIngestion:
         search_service_endpoint = self.AZURE_SEARCH_SERVICE_ENDPOINT
         search_api_key = self.AZURE_SEARCH_API_KEY
         index_name = "confluence-pages-index"
-        print(search_service_endpoint, search_api_key, index_name)
+        logger.info(search_service_endpoint, search_api_key, index_name)
 
         credential = AzureKeyCredential(search_api_key)
 
