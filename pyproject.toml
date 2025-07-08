@@ -37,6 +37,7 @@ dependencies = [
     "google-auth>=2.40.2",
     "google-api-python-client>=2.169.0",
     "dateparser>=1.2.1",
+    "pypdf2>=3.0.1",
 ]
 
 [tool.setuptools.packages.find]
