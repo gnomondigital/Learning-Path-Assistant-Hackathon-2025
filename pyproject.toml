@@ -37,6 +37,8 @@ dependencies = [
     "google-auth>=2.40.2",
     "google-api-python-client>=2.169.0",
     "dateparser>=1.2.1",
+    "pytest>=8.4.1",
+    "deepeval>=3.2.6",
 ]
 
 [tool.setuptools.packages.find]
