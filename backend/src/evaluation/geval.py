@@ -6,7 +6,7 @@ from backend.src.agents.orchestrator_agent.semantic_kernel_agent import \
     ChatAgentHandler
 
 # Agent input and response
-user_goal = "I am proficient in Python and SQL. I want to learn how to build and deploy machine learning models."
+user_goal = "I am proficient in Python and SQL. I want to learn how to build and deploy machine learning models without creating my profile."
 
 
 async def get_agent_response():
