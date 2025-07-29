@@ -52,7 +52,8 @@ class Profile(BaseModel):
     preferred_learning_style: list[str]
 
 
-def _create_kernel_with_chat_completion(service_id: str = SERVICE_ID) -> Kernel:
+def _create_kernel_with_chat_completion(
+        service_id: str = SERVICE_ID) -> Kernel:
     kernel = Kernel()
     kernel.add_service(
         AzureChatCompletion(
@@ -88,7 +89,7 @@ async def logger_filter(
 
 
 class ChatAgentHandler:
-    def __init__(self, user_id: str):
+    def __init__(self, user_id: str = None):
         self.user_id = user_id
         self.agent = None
         self.thread: Optional[ChatHistoryAgentThread] = None
@@ -179,11 +180,12 @@ class ChatAgentHandler:
         )
         self.initialized = True
 
-    async def handle_message(self, message: str) -> str:
+    async def handle_message(self, message: str, session_id: str) -> str:
         await self.initialise()
         intermediate_steps.clear()
         function_calling = []
         output_text = ""
+        await self._ensure_thread_exists(session_id)
         async for response in self.agent.invoke(
             messages=message,
             thread=self.thread,
@@ -242,3 +244,13 @@ class ChatAgentHandler:
                 logging.error(f"Error during Confluence plugin cleanup: {e}")
 
         self.initialized = False
+
+    async def _ensure_thread_exists(self, session_id: str) -> None:
+        """Ensure the thread exists for the given session ID.
+
+        Args:
+            session_id (str): Unique identifier for the session.
+        """
+        if self.thread is None or self.thread.id != session_id:
+            await self.thread.delete() if self.thread else None
+            self.thread = ChatHistoryAgentThread(thread_id=session_id)
