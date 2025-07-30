@@ -1,12 +1,15 @@
 import hashlib
 import json
 import logging
-from PyPDF2 import PdfReader
+import os
+import sys
 
 import chainlit as cl
-import sys 
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+from PyPDF2 import PdfReader
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+)
 
 from frontend.apis.routes import chat
 
@@ -65,7 +68,7 @@ async def on_chat_start():
         files = await cl.AskFileMessage(
             content="📄 Please upload a **PDF file** to begin!",
             accept=["application/pdf"],
-            max_size_mb=10
+            max_size_mb=10,
         ).send()
 
     pdf_file = files[0]
@@ -78,7 +81,9 @@ async def on_chat_start():
 
     cl.user_session.set("uploaded_file_content", text)
 
-    await cl.Message(content=f"`{pdf_file.name}` uploaded. Ready to chat!").send()
+    await cl.Message(
+        content=f"`{pdf_file.name}` uploaded. Ready to chat!"
+    ).send()
 
 
 @cl.on_message
@@ -88,7 +93,9 @@ async def main(message: cl.Message):
 
     # Combine user message with uploaded file content
     uploaded_content = cl.user_session.get("uploaded_file_content") or ""
-    combined_prompt = f"{message.content}\n\n[File Content]:\n{uploaded_content}"
+    combined_prompt = (
+        f"{message.content}\n\n[File Content]:\n{uploaded_content}"
+    )
 
     response = chat(combined_prompt)
     fcc = response.get("fcc")

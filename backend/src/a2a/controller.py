@@ -10,18 +10,15 @@ from backend.src.a2a.executor import SemanticKernelLearningAgentExecutor
 router = APIRouter()
 A2A_PATH = "api/v1/a2a"
 
+
 @router.get("/.well-known/agent.json")
-async def retrieve_agent_card(
-    request: Request
-):
+async def retrieve_agent_card(request: Request):
     agent_card = get_agent_card(base_url=f"{request.base_url}{A2A_PATH}")
     return JSONResponse(agent_card.model_dump(mode="json", exclude_none=True))
 
 
 @router.post("")
-async def handle_message(
-    request: Request
-):
+async def handle_message(request: Request):
     agent_card = get_agent_card(base_url=f"{request.base_url}{A2A_PATH}")
 
     request_handler = DefaultRequestHandler(

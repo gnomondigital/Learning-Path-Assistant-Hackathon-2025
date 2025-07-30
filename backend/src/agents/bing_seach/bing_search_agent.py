@@ -66,7 +66,7 @@ class BingSearch:
             logger.error("Agent not initialized. Call init() first.")
             raise RuntimeError("Agent not initialized. Call init() first.")
 
-        message = await self.client.agents.create_message(
+        await self.client.agents.create_message(
             thread_id=self.thread.id, role="user", content=query
         )
         logger.info("Starting agent run.")

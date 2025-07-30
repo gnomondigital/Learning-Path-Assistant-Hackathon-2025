@@ -1,4 +1,3 @@
-
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
@@ -10,17 +9,8 @@ AGENT_ID = "automated_learning_path_agent"
 
 
 def get_agent_card(base_url: str):
-    capabilities = AgentCapabilities(
-        streaming=True,
-        pushNotifications=True
-    )
+    capabilities = AgentCapabilities(streaming=True, pushNotifications=True)
     skills = [
-        AgentSkill(
-            id="retrive_data_from_db",
-            name="retrive_data_from_db",
-            description="Retrieves data from a database using a SQL query.",
-            tags=["retrive_data_from_db", "query", "database"],
-        ),
         AgentSkill(
             id="learning_path_building_external_content_web",
             name="BingSearch",

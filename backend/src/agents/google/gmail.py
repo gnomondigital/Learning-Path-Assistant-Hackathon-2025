@@ -17,8 +17,11 @@ logger = logging.getLogger(__name__)
 
 class GmailPlugin:
     def __init__(
-            self, credentials_file='credentials.json',
-            token_file='token_gmail.pickle', scopes=None):
+        self,
+        credentials_file="credentials.json",
+        token_file="token_gmail.pickle",
+        scopes=None,
+    ):
         """
         Initializes the GmailPlugin.
 
@@ -31,10 +34,13 @@ class GmailPlugin:
         """
         self.credentials_file = credentials_file
         self.token_file = token_file
-        self.scopes = scopes if scopes else [
-            'https://www.googleapis.com/auth/gmail.modify']
+        self.scopes = (
+            scopes
+            if scopes
+            else ["https://www.googleapis.com/auth/gmail.modify"]
+        )
         self.service = self._get_gmail_service()
-        self.user_id = 'me'  # 'me' refers to the authenticated user
+        self.user_id = "me"  # 'me' refers to the authenticated user
 
     def _get_gmail_service(self):
         """
@@ -43,7 +49,7 @@ class GmailPlugin:
         """
         creds = None
         if os.path.exists(self.token_file):
-            with open(self.token_file, 'rb') as token:
+            with open(self.token_file, "rb") as token:
                 creds = pickle.load(token)
 
         if not creds or not creds.valid:
@@ -52,26 +58,30 @@ class GmailPlugin:
             else:
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(
-                        self.credentials_file, self.scopes)
+                        self.credentials_file, self.scopes
+                    )
                     creds = flow.run_local_server(port=0)
                 except FileNotFoundError:
                     logger.info(
-                        f"Error: '{self.credentials_file}' not found. Please ensure your Gmail API credentials file is in the correct directory.")
+                        f"Error: '{self.credentials_file}' not found. Please ensure your Gmail API credentials file is in the correct directory."
+                    )
                     return None
                 except Exception as e:
                     logger.info(
-                        f"An error occurred during authentication flow: {e}")
+                        f"An error occurred during authentication flow: {e}"
+                    )
                     return None
-            with open(self.token_file, 'wb') as token:
+            with open(self.token_file, "wb") as token:
                 pickle.dump(creds, token)
 
         try:
-            service = build('gmail', 'v1', credentials=creds)
+            service = build("gmail", "v1", credentials=creds)
             logger.info("Gmail API service initialized successfully.")
             return service
         except HttpError as error:
             logger.info(
-                f"An error occurred while initializing Gmail service: {error}")
+                f"An error occurred while initializing Gmail service: {error}"
+            )
             return None
 
     @kernel_function(
@@ -92,19 +102,22 @@ class GmailPlugin:
         """
         if not self.service:
             logger.info(
-                "Gmail service not initialized. Cannot create message.")
+                "Gmail service not initialized. Cannot create message."
+            )
             return None
         message = MIMEText(message_text)
-        message['to'] = to
-        message['from'] = self.user_id  # Sender is the authenticated user
-        message['subject'] = subject
-        return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
+        message["to"] = to
+        message["from"] = self.user_id  # Sender is the authenticated user
+        message["subject"] = subject
+        return {"raw": base64.urlsafe_b64encode(message.as_bytes()).decode()}
 
     @kernel_function(
         name="create_message_with_attachment",
         description="Create a message with an attachment. The message is base64url encoded.",
     )
-    def create_message_with_attachment(self, to: str, subject: str, message_text: str, file_path: str) -> dict:
+    def create_message_with_attachment(
+        self, to: str, subject: str, message_text: str, file_path: str
+    ) -> dict:
         """
         Create a message with an attachment.
 
@@ -119,21 +132,25 @@ class GmailPlugin:
         """
         if not self.service:
             logger.info(
-                "Gmail service not initialized. Cannot create message with attachment.")
+                "Gmail service not initialized. Cannot create message with attachment."
+            )
             return None
         message = MIMEMultipart()
-        message['to'] = to
-        message['from'] = self.user_id  # Sender is the authenticated user
-        message['subject'] = subject
+        message["to"] = to
+        message["from"] = self.user_id  # Sender is the authenticated user
+        message["subject"] = subject
 
         msg = MIMEText(message_text)
         message.attach(msg)
 
         try:
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 part = MIMEApplication(
-                    f.read(), name=os.path.basename(file_path))
-            part['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
+                    f.read(), name=os.path.basename(file_path)
+                )
+            part["Content-Disposition"] = (
+                f'attachment; filename="{os.path.basename(file_path)}"'
+            )
             message.attach(part)
         except FileNotFoundError:
             logger.info(f"Error: Attachment file not found at '{file_path}'.")
@@ -142,7 +159,7 @@ class GmailPlugin:
             logger.info(f"An error occurred while attaching file: {e}")
             return None
 
-        return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
+        return {"raw": base64.urlsafe_b64encode(message.as_bytes()).decode()}
 
     @kernel_function(
         name="send_email",
@@ -162,8 +179,12 @@ class GmailPlugin:
             logger.info("Gmail service not initialized. Cannot send email.")
             return None
         try:
-            sent_message = self.service.users().messages().send(
-                userId=self.user_id, body=message).execute()
+            sent_message = (
+                self.service.users()
+                .messages()
+                .send(userId=self.user_id, body=message)
+                .execute()
+            )
             logger.info(f"Message Id: {sent_message['id']} sent successfully!")
             return sent_message
         except HttpError as error:

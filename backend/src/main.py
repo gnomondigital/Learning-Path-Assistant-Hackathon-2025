@@ -1,8 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
 
-from backend.src.apis.chat import app as chat_app
 from backend.src.a2a.controller import router
+from backend.src.apis.chat import app as chat_app
 
 app = FastAPI(title="Automated learning paths")
 app.include_router(chat_app)

@@ -212,7 +212,7 @@ class ConfluenceIngestion:
             documents.append(doc)
 
         if documents:
-            result = search_client.upload_documents(documents=documents)
+            search_client.upload_documents(documents=documents)
             logger.info(f"Indexed {len(documents)} documents in Azure Search.")
         else:
             logger.info("No documents to index.")

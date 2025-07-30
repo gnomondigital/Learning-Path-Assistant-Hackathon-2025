@@ -17,7 +17,7 @@ class MetadataStoreConfig(BaseModel):
     config: Optional[dict] = None
 
 
-class Settings():
+class Settings:
     CONFLUENCE_URL = os.getenv("CONFLUENCE_URL")
     CONFLUENCE_USERNAME = os.getenv("CONFLUENCE_USERNAME")
     CONFLUENCE_API_KEY = os.getenv("CONFLUENCE_API_KEY")
@@ -39,15 +39,14 @@ class Settings():
     AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED = os.getenv(
         "AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED"
     )
-    AZURE_SEARCH_SERVICE_ENDPOINT = os.getenv(
-        "AZURE_SEARCH_SERVICE_ENDPOINT"
-    )
+    AZURE_SEARCH_SERVICE_ENDPOINT = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
     AZURE_SEARCH_API_KEY = os.getenv(
         "AZURE_SEARCH_API_KEY", "azure-search-api-key"
     )
 
     METADATA_STORE_CONFIG: MetadataStoreConfig = os.getenv(
-        "METADATA_STORE_CONFIG", "")
+        "METADATA_STORE_CONFIG", ""
+    )
 
     if not METADATA_STORE_CONFIG:
         raise ValueError("METADATA_STORE_CONFIG is not set")

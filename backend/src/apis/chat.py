@@ -1,5 +1,3 @@
-from typing import AsyncGenerator
-
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel

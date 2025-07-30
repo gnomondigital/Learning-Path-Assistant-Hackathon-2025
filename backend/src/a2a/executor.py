@@ -48,4 +48,4 @@ class SemanticKernelLearningAgentExecutor(AgentExecutor):
     async def cancel(
         self, context: RequestContext, event_queue: EventQueue
     ) -> None:
-        raise Exception('cancel not supported')
+        raise Exception("cancel not supported")

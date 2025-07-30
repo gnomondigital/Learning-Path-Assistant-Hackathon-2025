@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 class ConfluencePageModel(BaseModel):
     id: str = Field(
         title="Unique identifier for the resource",
-        default_factory=lambda: str(uuid4())
+        default_factory=lambda: str(uuid4()),
     )
 
     page_id: str = Field(
