@@ -9,13 +9,13 @@ AGENT_ID = "automated_learning_path_agent"
 
 
 def get_agent_card(base_url: str):
-    capabilities = AgentCapabilities(streaming=True, pushNotifications=True)
+    capabilities = AgentCapabilities(streaming=True, push_notifications=True)
     skills = [
         AgentSkill(
             id="learning_path_building_external_content_web",
             name="BingSearch",
-            description="Searches the web for external content relevant to learning paths.",
-            tags=["web", "search", "external", "bing"],
+            description="Searches the web for external content relevant to user queries.",
+            tags=["web", "search", "externalContent", "bing"],
         ),
         AgentSkill(
             id="Profile_Builder_Agent",
@@ -24,28 +24,28 @@ def get_agent_card(base_url: str):
             tags=["profile", "user", "builder"],
         ),
         AgentSkill(
-            id="internal_content_mcp",
+            id="internal_content",
             name="ConfluencePlugin",
-            description="Retrieves internal content from Confluence MCP.",
-            tags=["internal", "confluence", "content", "mcp"],
+            description="Retrieves internal content source in our case it's confluence.",
+            tags=["internalContent", "confluence", "search"],
         ),
         AgentSkill(
             id="internal_content_rag",
             name="SearchPlugin",
             description="Performs internal content retrieval using RAG search.",
-            tags=["internal", "rag", "search"],
+            tags=["internalContent", "rag", "search"],
         ),
         AgentSkill(
             id="gmail_email_plugin",
             name="GmailPlugin",
             description="Accesses and manages Gmail emails.",
-            tags=["gmail", "email", "plugin"],
+            tags=["gmail", "email"],
         ),
         AgentSkill(
             id="google_calendar_plugin",
             name="GoogleCalendarPlugin",
             description="Accesses and manages Google Calendar events.",
-            tags=["google", "calendar", "plugin"],
+            tags=["google", "calendar"],
         ),
     ]
     return AgentCard(
@@ -53,8 +53,8 @@ def get_agent_card(base_url: str):
         description="An agent that helps create personalized learning paths.",
         url=base_url,
         version="1.0.0",
-        defaultInputModes=["text", "text/plain"],
-        defaultOutputModes=["text", "text/plain", "image"],
+        default_input_modes=["text", "text/plain"],
+        default_output_modes=["text", "text/plain", "image"],
         capabilities=capabilities,
         skills=skills,
     )

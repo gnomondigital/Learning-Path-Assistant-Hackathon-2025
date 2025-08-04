@@ -25,7 +25,7 @@ class SemanticKernelLearningAgentExecutor(AgentExecutor):
         query = context.get_user_input()
         task = context.current_task
         if not task:
-            task = new_task(context.message)
+            task = new_task(request=context.message)
             await event_queue.enqueue_event(task)
         stream, _ = await self.agent.handle_message(
             message=query, session_id=task.context_id
@@ -33,14 +33,14 @@ class SemanticKernelLearningAgentExecutor(AgentExecutor):
         reply_msg_content = stream
 
         reply_msg_id = str(uuid4())
-        task_id = str(uuid4())
+        task.id = str(uuid4())
 
         reply_message_obj = Message(
             role=Role.agent,
             parts=[Part(root=TextPart(text=reply_msg_content))],
-            messageId=reply_msg_id,
-            contextId=context.context_id,
-            taskId=task_id,
+            message_id=reply_msg_id,
+            context_id=context.context_id,
+            task_id=task.id,
         )
 
         await event_queue.enqueue_event(reply_message_obj)
