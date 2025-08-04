@@ -11,6 +11,7 @@ chat_handler = ChatAgentHandler(user_id=None)
 
 class Message(BaseModel):
     text: str
+    session_id: str = None
 
 
 @app.post("/chat_streaming")
@@ -23,7 +24,9 @@ async def chat_streaming(message: Message):
 
 @app.post("/chat")
 async def chat(message: Message):
-    response, fcc = await chat_handler.handle_message(message.text)
+    response, fcc = await chat_handler.handle_message(
+        message.text,
+        session_id=message.session_id)
     return {"response": response, "fcc": fcc}
 
 

@@ -2,6 +2,7 @@ import logging
 import os
 from collections.abc import AsyncIterable
 from typing import Awaitable, Callable, Optional
+from uuid import uuid4
 
 from pydantic import BaseModel
 from semantic_kernel import Kernel
@@ -252,6 +253,8 @@ class ChatAgentHandler:
         Args:
             session_id (str): Unique identifier for the session.
         """
+        if session_id is None:
+            session_id = str(uuid4())
         if self.thread is None or self.thread.id != session_id:
             await self.thread.delete() if self.thread else None
             self.thread = ChatHistoryAgentThread(thread_id=session_id)
