@@ -39,6 +39,8 @@ dependencies = [
     "dateparser>=1.2.1",
     "pytest>=8.4.1",
     "deepeval>=3.2.6",
+    "trulens>=2.2.1",
+    "trulens-eval>=2.2.1",
 ]
 
 [tool.setuptools.packages.find]
