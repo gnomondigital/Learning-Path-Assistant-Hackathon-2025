@@ -41,6 +41,8 @@ dependencies = [
     "deepeval>=3.2.6",
     "trulens>=2.2.1",
     "trulens-eval>=2.2.1",
+    "azure-ai-evaluation>=1.10.0",
+    "trulens-providers-openai>=2.2.2",
 ]
 
 [tool.setuptools.packages.find]
