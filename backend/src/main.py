@@ -3,7 +3,7 @@ from fastapi import FastAPI
 
 from backend.src.apis.chat import app as chat_app
 
-app = FastAPI(title="Automated learning paths")
+app = FastAPI(title="Learning Path Assistant")
 app.include_router(chat_app)
 
 

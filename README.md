@@ -1,4 +1,4 @@
-# Automated Learning Paths - Hackathon 2025
+# Learning Path Assistant - Hackathon 2025
 
 Project submission for participation in the **Microsoft Hackathon 2025**.
 

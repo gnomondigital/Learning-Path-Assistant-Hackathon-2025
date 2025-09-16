@@ -1,4 +1,4 @@
-# Frontend - Automated Learning Paths Hackathon 2025
+# Frontend - Learning Path Assistant Hackathon 2025
 
 ## Project Overview
 The Learning Path project is designed to build personalized learning journeys by integrating AI-driven assistance. It provides users with tailored recommendations, helping them progress in their fields efficiently. The frontend plays a crucial role in delivering an intuitive experience, making interactions smooth and visually engaging.

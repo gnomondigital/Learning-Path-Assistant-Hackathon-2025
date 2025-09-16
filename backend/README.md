@@ -2,11 +2,11 @@
 
 ## Introduction
 
-This document provides a comprehensive overview of the  architecture for the Automated Learning Paths generator that we created to participate in the Microsoft Hackathon 2025. The backend is designed to handle user interactions, build learning profiles, and retrieve educational resources from both internal resources [the company’s internal data] and external sources [web] to build a customised learning path based on the given profile. 
+This document provides a comprehensive overview of the  architecture for the Learning Path Assistant generator that we created to participate in the Microsoft Hackathon 2025. The backend is designed to handle user interactions, build learning profiles, and retrieve educational resources from both internal resources [the company’s internal data] and external sources [web] to build a customised learning path based on the given profile. 
 
 The orchestration layer leverages multiple plugins, each responsible for specific functionalities, and together creating a coherent flow. ensuring an efficient and personalised user experience.
 
-![Automated learning paths](./images/6.png)
+![Learning Path Assistant](./images/6.png)
 
 
 This diagram provides a high-level overview of how users interact with the backend system:
