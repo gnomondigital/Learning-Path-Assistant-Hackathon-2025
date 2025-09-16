@@ -37,6 +37,12 @@ dependencies = [
     "google-auth>=2.40.2",
     "google-api-python-client>=2.169.0",
     "dateparser>=1.2.1",
+    "pytest>=8.4.1",
+    "deepeval>=3.2.6",
+    "trulens>=2.2.1",
+    "trulens-eval>=2.2.1",
+    "azure-ai-evaluation>=1.10.0",
+    "trulens-providers-openai>=2.2.2",
 ]
 
 [tool.setuptools.packages.find]

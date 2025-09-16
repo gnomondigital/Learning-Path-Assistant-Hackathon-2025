@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from collections.abc import AsyncIterable
@@ -52,7 +53,9 @@ class Profile(BaseModel):
     preferred_learning_style: list[str]
 
 
-def _create_kernel_with_chat_completion(service_id: str = SERVICE_ID) -> Kernel:
+def _create_kernel_with_chat_completion(
+    service_id: str = SERVICE_ID,
+) -> Kernel:
     kernel = Kernel()
     kernel.add_service(
         AzureChatCompletion(
@@ -144,11 +147,11 @@ class ChatAgentHandler:
 
         kernel.add_plugin(
             BingSearch(),
-            plugin_name="learning_path_building_external_content_web")
+            plugin_name="learning_path_building_external_content_web",
+        )
         kernel.add_plugin(profile_builder, plugin_name="Profile_Builder_Agent")
         kernel.add_plugin(
-            self.confluence_plugin,
-            plugin_name="internal_content_mcp"
+            self.confluence_plugin, plugin_name="internal_content_mcp"
         )
         kernel.add_plugin(
             SearchPlugin(search_client=search_client),

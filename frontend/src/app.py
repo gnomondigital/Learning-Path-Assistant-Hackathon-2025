@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 def load_users_from_file() -> list:
     logging.info("Loading users from file")
-    with open("../../data/users.json", "r") as f:
+    with open("frontend/data/users.json", "r") as f:
         users = json.load(f)
     logging.info("Loaded users")
     return users
