@@ -1,5 +1,13 @@
 # Hackathon Backend
 
+### Read On Medium 
+
+Read the full series on Medium to learn more about the journey and technical implementation of the Learning Path Assistant:
+- [Building a Learning Path Assistant for the Microsoft Hackathon 2025](https://medium.com/gnomondigital/building-a-learning-path-assistant-for-the-microsoft-hackathon-2025-edd7a09bdaaf)
+- [Part 1/3: Designing a Multi-Agent System for the Learning Path Assistant](https://medium.com/gnomondigital/part-1-3-designing-a-multi-agent-system-for-the-learning-path-assistant-5328b0b61b6a)
+- [Part 2/3: From Architecture to Production with Azure AI Foundry](https://medium.com/gnomondigital/part-2-3-from-architecture-to-production-with-azure-ai-foundry-4d07d726996d)
+- [Part 3/3: From Backend Intelligence to Interactive Learning Experience](https://medium.com/gnomondigital/part-3-3-from-backend-intelligence-to-interactive-learning-experience-a353a167a9d8)
+
 ## Introduction
 
 This document provides a comprehensive overview of the  architecture for the Learning Path Assistant generator that we created to participate in the Microsoft Hackathon 2025. The backend is designed to handle user interactions, build learning profiles, and retrieve educational resources from both internal resources [the company’s internal data] and external sources [web] to build a customised learning path based on the given profile. 
