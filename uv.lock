@@ -1999,7 +1999,7 @@ wheels = [
 [[package]]
 name = "learning-path-assistant-hackathon-2025"
 version = "1.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
     { name = "aiosqlite" },
@@ -2028,7 +2028,6 @@ dependencies = [
     { name = "opentelemetry-exporter-otlp" },
     { name = "orjson" },
     { name = "pandas" },
-    { name = "phoenix" },
     { name = "pillow" },
     { name = "pip" },
     { name = "pydantic" },
@@ -2073,7 +2072,6 @@ requires-dist = [
     { name = "opentelemetry-exporter-otlp", specifier = ">=1.31.1" },
     { name = "orjson", specifier = ">=3.10.18" },
     { name = "pandas", specifier = ">=2.2.3" },
-    { name = "phoenix", specifier = ">=0.9.1" },
     { name = "pillow", specifier = ">=11.2.1" },
     { name = "pip", specifier = ">=25.1" },
     { name = "pydantic", specifier = ">=2.11.3" },
@@ -3458,12 +3456,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523", size = 63772 },
 ]
-
-[[package]]
-name = "phoenix"
-version = "0.9.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d9/c1/ceb5ee9a7e70572741017fcf33b02b48bee4caa8ed8b0dfc2cbe6d299047/phoenix-0.9.1.zip", hash = "sha256:16c5d61d2e13c0ece7d2f656bcbd4532755ca36c1a3753f9158a5d53f58ebb20", size = 3625 }
 
 [[package]]
 name = "pillow"
