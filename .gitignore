@@ -172,8 +172,6 @@ cython_debug/
 .DS_Store
 # PyPI configuration file
 .pypirc
-.data
-data/
 .chainlit
 !cypress/e2e/**/*/.chainlit/*
 
@@ -186,3 +184,10 @@ token.pickle
 token_gmail.pickle
 token_calendar.pickle
 .vscode/
+.deepeval/
+
+
+# Node modules.
+node_modules/
+default.sqlite
+uv.lock

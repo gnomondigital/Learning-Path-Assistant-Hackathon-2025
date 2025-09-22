@@ -1,11 +1,24 @@
 # Frontend - Learning Path Assistant Hackathon 2025
 
+### Read On Medium 
+
+Read the full series on Medium to learn more about the journey and technical implementation of the Learning Path Assistant:
+- [Building a Learning Path Assistant for the Microsoft Hackathon 2025](https://medium.com/gnomondigital/building-a-learning-path-assistant-for-the-microsoft-hackathon-2025-edd7a09bdaaf)
+- [Part 1/3: Designing a Multi-Agent System for the Learning Path Assistant](https://medium.com/gnomondigital/part-1-3-designing-a-multi-agent-system-for-the-learning-path-assistant-5328b0b61b6a)
+- [Part 2/3: From Architecture to Production with Azure AI Foundry](https://medium.com/gnomondigital/part-2-3-from-architecture-to-production-with-azure-ai-foundry-4d07d726996d)
+- [Part 3/3: From Backend Intelligence to Interactive Learning Experience](https://medium.com/gnomondigital/part-3-3-from-backend-intelligence-to-interactive-learning-experience-a353a167a9d8)
+
 ## Project Overview
 The Learning Path project is designed to build personalized learning journeys by integrating AI-driven assistance. It provides users with tailored recommendations, helping them progress in their fields efficiently. The frontend plays a crucial role in delivering an intuitive experience, making interactions smooth and visually engaging.
 
 ![Learning Path Frontend](./images/1.png "Screenshot of the Learning Path Frontend")
 
 ## 1. Initializing Chainlit: [Chainlit Documentation](https://docs.chainlit.io/get-started/overview)
+Move to the src folder :
+
+```bash
+cd frontend/src
+```
 
 The first steps in setting up the frontend with chainlit, a framework that facilitates AI-driven conversational interfaces, is initializing Chainlit then running the following command:
 
@@ -13,6 +26,15 @@ The first steps in setting up the frontend with chainlit, a framework that facil
 uv run chainlit run app.py
 ```
 At this point, seeing the application start up felt like unlocking the first piece of the puzzle. The interface loaded, and I could begin interacting with the AI, but it was still disconnected from the backend.
+
+For the first connexion use:
+
+```bash
+USER="user"
+PASSWORD="pass"
+```
+
+These credentials will be used to authenticate and log in. Ensure that the `user` and `pass` values are correctly set to allow seamless access to the system. Once entered, the user will be logged in securely.
 
 ## 2. Connecting to the Backend:
 To ensure the frontend could effectively communicate with the backend, I had to modify my code and configure my .env file properly. This involved:

@@ -2,12 +2,21 @@
 
 Project submission for participation in the **Microsoft Hackathon 2025**.
 
+### Read On Medium 
+
+Read the full series on Medium to learn more about the journey and technical implementation of the Learning Path Assistant:
+- [Building a Learning Path Assistant for the Microsoft Hackathon 2025](https://medium.com/gnomondigital/building-a-learning-path-assistant-for-the-microsoft-hackathon-2025-edd7a09bdaaf)
+- [Part 1/3: Designing a Multi-Agent System for the Learning Path Assistant](https://medium.com/gnomondigital/part-1-3-designing-a-multi-agent-system-for-the-learning-path-assistant-5328b0b61b6a)
+- [Part 2/3: From Architecture to Production with Azure AI Foundry](https://medium.com/gnomondigital/part-2-3-from-architecture-to-production-with-azure-ai-foundry-4d07d726996d)
+- [Part 3/3: From Backend Intelligence to Interactive Learning Experience](https://medium.com/gnomondigital/part-3-3-from-backend-intelligence-to-interactive-learning-experience-a353a167a9d8)
+
 ## AI-Powered Upskilling Chatbot
 
 ### Overview
 This project implements an **AI-powered chatbot** designed to assist users in skill development across various domains. The system uses a multi-agent architecture, integrating specialized agents to manage personalized learning paths, profile building, and content discovery from both **internal** and **external** resources.
 
 The chatbot leverages **Azure** tools such as **RAG (Retrieval-Augmented Generation)**, **File Search**, and **Bing Search** to provide users with relevant educational content. **Confluence** serves as the internal knowledge base, offering curated learning materials. With this, the chatbot creates a dynamic learning experience by combining internal and external sources to offer tailored educational journeys.
+
 
 ### Project Image
 

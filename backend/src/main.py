@@ -1,10 +1,10 @@
 import uvicorn
 from fastapi import FastAPI
 
-from backend.src.apis.chat import app as chat_app
+from backend.src.apis.chat import app as invoke
 
 app = FastAPI(title="Learning Path Assistant")
-app.include_router(chat_app)
+app.include_router(invoke)
 
 
 @app.get("/")

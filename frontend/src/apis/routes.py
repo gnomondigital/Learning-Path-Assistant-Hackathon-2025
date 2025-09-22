@@ -19,7 +19,7 @@ def root():
 
 
 def chat(message: str):
-    url = "http://localhost:8080/chat"
+    url = "http://localhost:8080/invoke"
     try:
         response = requests.post(url, json={"text": message})
         response.raise_for_status()
@@ -41,7 +41,7 @@ def cleanup():
 
 
 async def chat_streaming(message: str) -> AsyncGenerator[str, None]:
-    url = "http://localhost:8000/chat_streaming"
+    url = "http://localhost:8000/ainvoke"
     async with httpx.AsyncClient(timeout=None) as client:
         async with client.stream(
             "POST", url, json={"text": message}

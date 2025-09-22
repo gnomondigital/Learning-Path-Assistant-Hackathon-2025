@@ -15,7 +15,7 @@ class Message(BaseModel):
     text: str
 
 
-@app.post("/chat_streaming")
+@app.post("/ainvoke")
 async def chat_streaming(message: Message):
     return StreamingResponse(
         chat_handler.handle_message_streaming(message=message.text),
@@ -23,7 +23,7 @@ async def chat_streaming(message: Message):
     )
 
 
-@app.post("/chat")
+@app.post("/invoke")
 async def chat(message: Message):
     response, fcc = await chat_handler.handle_message(message.text)
     return {"response": response, "fcc": fcc}

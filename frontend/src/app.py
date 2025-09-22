@@ -4,14 +4,14 @@ import logging
 
 import chainlit as cl
 
-from frontend.apis.routes import chat
+from apis.routes import chat
 
 logging.basicConfig(level=logging.INFO)
 
 
 def load_users_from_file() -> list:
     logging.info("Loading users from file")
-    with open("frontend/data/users.json", "r") as f:
+    with open("data/users.json", "r") as f:
         users = json.load(f)
     logging.info("Loaded users")
     return users
