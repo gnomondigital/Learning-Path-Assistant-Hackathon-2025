@@ -13,7 +13,7 @@ from requests.auth import HTTPBasicAuth
 from semantic_kernel.functions import kernel_function
 
 from backend.src.agents.confluence.model.base import ConfluencePageModel
-from backend.src.storage.client import METADATA_STORE_CLIENT
+from backend.src.mongodb.client import METADATA_STORE_CLIENT
 from backend.src.utils.config import Settings
 
 logging.basicConfig(level=logging.INFO)

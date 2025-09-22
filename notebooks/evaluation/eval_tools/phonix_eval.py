@@ -1,31 +1,28 @@
-import pandas as pd
-from phoenix.evals import (
-    HALLUCINATION_PROMPT_RAILS_MAP,
-    HALLUCINATION_PROMPT_TEMPLATE,
-    OpenAIModel,
-    llm_classify,
-)
-
-from backend.src.agents.orchestrator_agent.semantic_kernel_agent import (
-    ChatAgentHandler,
-)
 import asyncio
 
-# Define the test query (input)
-test_query = "I want to learn Data Science from scratch. I know nothing without cerating my profile juste give me my learning path ."
+import pandas as pd
+from phoenix.evals import (HALLUCINATION_PROMPT_RAILS_MAP,
+                           HALLUCINATION_PROMPT_TEMPLATE, OpenAIModel,
+                           llm_classify)
+
+from backend.src.agents.orchestrator_agent.semantic_kernel_agent import \
+    ChatAgentHandler
+from notebooks.utils import setup_logger
+
+logger = setup_logger(__name__)
 
 
-# Get the agent response (output)
+test_query = "I want to learn Data Science from scratch. I know nothing without creating my profile just give me my learning path."
+
+
 async def get_agent_response():
     agent = ChatAgentHandler(user_id="test_user")
     response, _ = await agent.handle_message(test_query)
     return response
 
 
-# Run the agent and get response
 response = asyncio.run(get_agent_response())
 
-# Create the DataFrame for evaluation
 df = pd.DataFrame(
     {
         "input": [test_query],
@@ -47,16 +44,13 @@ df = pd.DataFrame(
     }
 )
 
-# Set up the model
 model = OpenAIModel(
     model="gpt-4",
     temperature=0.0,
 )
 
-# Rails are the allowed outputs (yes/no, etc.)
 rails = list(HALLUCINATION_PROMPT_RAILS_MAP.values())
 
-# Run hallucination classification
 results = llm_classify(
     data=df,
     template=HALLUCINATION_PROMPT_TEMPLATE,
@@ -65,11 +59,10 @@ results = llm_classify(
     provide_explanation=True,
 )
 
-pd.set_option("display.max_colwidth", None)  # Ne coupe pas les colonnes
-pd.set_option("display.max_columns", None)  # Affiche toutes les colonnes
+pd.set_option("display.max_colwidth", None)
+pd.set_option("display.max_columns", None)
 pd.set_option(
     "display.expand_frame_repr", False
-)  # Pas de coupure sur plusieurs lignes
+)
 
-print(results)  # ou results.head()
-# results.to_csv("hallucination_eval_results.csv", index=False)
+logger.info(results)

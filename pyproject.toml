@@ -1,7 +1,7 @@
 [project]
-name = "learning-path-assistant-hackathon2025"
-version = "0.1.0"
-description = "A project for creating learning paths for Hackathon 2025"
+name = "learning-path-assistant-hackathon-2025"
+version = "1.0.0"
+description = "A project for creating learning paths assistant for Hackathon 2025"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -43,6 +43,9 @@ dependencies = [
     "trulens-eval>=2.2.1",
     "azure-ai-evaluation>=1.10.0",
     "trulens-providers-openai>=2.2.2",
+    "phoenix>=0.9.1",
+    "openai>=1.100.1",
+    "arize-phoenix-evals>=2.0.1",
 ]
 
 [tool.setuptools.packages.find]

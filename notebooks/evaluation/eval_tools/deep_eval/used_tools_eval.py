@@ -6,13 +6,18 @@ from deepeval.test_case import LLMTestCase, ToolCall
 
 from backend.src.agents.orchestrator_agent.semantic_kernel_agent import \
     ChatAgentHandler
+from notebooks.utils import setup_logger
+
+logger = setup_logger(__name__)
+
 
 test_query = "i want to learn python from internal and external content, give me my learning path without creating my profile."
+
 
 async def get_agent_response():
     agent = ChatAgentHandler(user_id="test_user")
     response, function_calling = await agent.handle_message(test_query)
-    print(
+    logger.info(
         "fcc tools used ", function_calling
     )
     tools_used = [
@@ -37,4 +42,5 @@ test_case = LLMTestCase(
 
 metric = ToolCorrectnessMetric()
 
-evaluate(test_cases=[test_case], metrics=[metric])
+result = evaluate(test_cases=[test_case], metrics=[metric])
+logger.info(f"Tool Correctness: {result}")

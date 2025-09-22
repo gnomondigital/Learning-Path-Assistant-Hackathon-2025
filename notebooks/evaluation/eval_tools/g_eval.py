@@ -1,9 +1,14 @@
 import asyncio
+import time
 
 import openai
 
 from backend.src.agents.orchestrator_agent.semantic_kernel_agent import \
     ChatAgentHandler
+from notebooks.utils import setup_logger
+
+logger = setup_logger(__name__)
+
 
 # Agent input and response
 user_goal = "I am proficient in Python and SQL. I want to learn how to build and deploy machine learning models without creating my profile."
@@ -15,15 +20,13 @@ async def get_agent_response():
     return response
 
 
-import time
-
 start = time.perf_counter()
 agent_output = asyncio.run(get_agent_response())
 end = time.perf_counter()
 latency = end - start  # seconds
-print(f"Latency: {latency:.2f}s")
+logger.info(f"Latency: {latency:.2f}s")
 
-print(f"Agent Output: {agent_output}")
+logger.info(f"Agent Output: {agent_output}")
 # GEval prompt (LLM-as-a-judge)
 prompt = f"""
 You are an expert evaluator of AI-generated learning paths. A user asked for help with the following goal:
@@ -58,10 +61,8 @@ Return only a JSON object like this:
 """
 
 
-# Call OpenAI to evaluate
 response = openai.chat.completions.create(
     model="gpt-4", messages=[{"role": "user", "content": prompt}]
 )
 
-# Show evaluation
-print(response.choices[0].message.content)
+logger.info(response.choices[0].message.content)

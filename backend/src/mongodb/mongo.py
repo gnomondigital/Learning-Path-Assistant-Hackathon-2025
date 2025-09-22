@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from pymongo.mongo_client import MongoClient
 
-from backend.src.storage.base import BaseMetadataStore
+from backend.src.mongodb.base import BaseMetadataStore
 
 logger = logging.getLogger(__name__)
 

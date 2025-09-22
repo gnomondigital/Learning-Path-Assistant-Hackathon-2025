@@ -5,6 +5,10 @@ from phoenix.evals import OpenAIModel, llm_classify
 
 from backend.src.agents.orchestrator_agent.semantic_kernel_agent import \
     ChatAgentHandler
+from notebooks.utils import setup_logger
+
+logger = setup_logger(__name__)
+
 
 ROUTER_EVAL_TEMPLATE = """You are comparing a response to a question, and verifying whether that response should have made a function call instead of responding directly. Here is the data:
     [BEGIN DATA]
@@ -25,6 +29,7 @@ Here is more information on each function:
 - track_package: Track the status of a package based on the tracking number."""
 
 rails = ["incorrect", "correct"]
+
 
 async def evaluate_router_behavior():
     test_query = "I want to learn Data Science , give my learning path without creating my profile."
@@ -50,4 +55,4 @@ if __name__ == "__main__":
     results = asyncio.run(evaluate_router_behavior())
 
     pd.set_option("display.max_colwidth", None)
-    print("user and answer evaluation : ", results)
+    logger.info("user and answer evaluation : ", results)
